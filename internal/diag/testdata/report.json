@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected ':', found type name 'Text'",
+      "file": "main.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 9
+        },
+        "end": {
+          "line": 2,
+          "col": 13
+        }
+      },
+      "snippet": "  title Text",
+      "fixes": [
+        {
+          "title": "Insert ':'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 8
+                },
+                "end": {
+                  "line": 2,
+                  "col": 8
+                }
+              },
+              "new_text": ":"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

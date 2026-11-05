@@ -1,10 +1,6 @@
 package token
 
-import (
-	"testing"
-
-	_ "github.com/sohretaga/govibe/internal/golden"
-)
+import "testing"
 
 func TestPosition(t *testing.T) {
 	f := NewFile("main.vibe", []byte("ab\n  \"Dünya\" x\r\n\nlast"))

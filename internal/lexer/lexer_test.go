@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sohretaga/govibe/internal/diag"
 	_ "github.com/sohretaga/govibe/internal/golden"
 	"github.com/sohretaga/govibe/internal/token"
 )
@@ -220,6 +221,21 @@ func TestQuote(t *testing.T) {
 		}
 		if len(res.Diags) > 0 || text.String() != s {
 			t.Errorf("lex(Quote(%q)) = %q, %v", s, text.String(), res.Diags)
+		}
+	}
+}
+
+// TestLongLines checks that a long line full of errors records a bounded
+// number of diagnostics: each one renders its line, so recording all of
+// them makes lexing quadratic.
+func TestLongLines(t *testing.T) {
+	for name, src := range map[string]string{
+		"semicolons":         strings.Repeat(";", 200_000),
+		"single quotes":      strings.Repeat("'", 200_000),
+		"invalid characters": strings.Repeat("@", 200_000),
+	} {
+		if res := lex(src); len(res.Diags) > diag.Limit {
+			t.Errorf("%s: %d diagnostics, want at most %d", name, len(res.Diags), diag.Limit)
 		}
 	}
 }

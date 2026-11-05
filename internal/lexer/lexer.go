@@ -92,13 +92,21 @@ func (l *lexer) emitText(k token.Kind, start, end int, text string) {
 	l.toks[len(l.toks)-1].Text = text
 }
 
+// report records a diagnostic and returns it so a fix can be attached.
+// Past diag.Limit diagnostics it records nothing and returns nil: only the
+// first ones are shown, and building more would cost time on long lines.
 func (l *lexer) report(code diag.Code, start, end int, args ...any) *diag.Diagnostic {
+	if len(l.diags) >= diag.Limit {
+		return nil
+	}
 	l.diags = append(l.diags, diag.New(l.f, code, token.PosAt(start), token.PosAt(end), args...))
 	return &l.diags[len(l.diags)-1]
 }
 
 func (l *lexer) fix(d *diag.Diagnostic, title string, start, end int, text string) {
-	*d = d.WithFix(title, diag.Replace(l.f, token.PosAt(start), token.PosAt(end), text))
+	if d != nil {
+		*d = d.WithFix(title, diag.Replace(l.f, token.PosAt(start), token.PosAt(end), text))
+	}
 }
 
 // last returns the last emitted token, or an EOF token if there is none.
@@ -365,7 +373,7 @@ func (l *lexer) lineEnd() int {
 func (l *lexer) embed(start, end int) token.Part {
 	sub := &lexer{f: l.f, src: l.src, off: start, end: end, embedded: true}
 	sub.run()
-	l.diags = append(l.diags, sub.diags...)
+	l.diags = append(l.diags, sub.diags[:min(len(sub.diags), max(diag.Limit-len(l.diags), 0))]...)
 	return token.Part{Pos: token.PosAt(start), End: token.PosAt(end), Expr: true, Tokens: sub.toks}
 }
 
@@ -630,6 +638,9 @@ func (l *lexer) operator() {
 	case ';':
 		l.off++
 		d := l.report(diag.V104, start, l.off, "';'", "statements end at a newline")
+		if d == nil {
+			return
+		}
 		if rest := strings.TrimSpace(string(l.src[l.off:l.lineEnd()])); rest == "" || rest[0] == '#' {
 			l.fix(d, "Remove ';'", start, l.off, "")
 		} else {
@@ -669,14 +680,16 @@ func (l *lexer) substitute(width int, found, keyword string, k token.Kind) {
 
 func (l *lexer) singleQuoted() {
 	start := l.off
-	end := l.lineEnd()
-	closing := strings.IndexByte(string(l.src[start+1:end]), '\'')
-	if closing < 0 {
+	closing := start + 1
+	for closing < l.end && l.src[closing] != '\'' && l.src[closing] != '\n' {
+		closing++
+	}
+	if closing >= l.end || l.src[closing] != '\'' {
 		l.off++
 		l.report(diag.V104, start, l.off, "\"'\"", "strings use double quotes")
 		return
 	}
-	l.off = start + 1 + closing + 1
+	l.off = closing + 1
 	content := string(l.src[start+1 : l.off-1])
 	d := l.report(diag.V104, start, l.off, "\"'\"", "strings use double quotes")
 	l.fix(d, "Use double quotes", start, l.off, Quote(content))

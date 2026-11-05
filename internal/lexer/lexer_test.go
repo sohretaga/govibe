@@ -159,7 +159,7 @@ func TestErrors(t *testing.T) {
 		{"!a", `V104 1:1-1:2 ["not "]`, "not IDENT(a) EOF"},
 		{"let x = 1;", `V104 1:10-1:11 [""]`, "let IDENT(x) = INT(1) EOF"},
 		{"a; b", `V104 1:2-1:3 ["\n"]`, "IDENT(a) IDENT(b) EOF"},
-		{"'hi {x}'", `V104 1:1-1:9 ["\"hi \\{x}\""]`, `STRING["hi {x}"] EOF`},
+		{"'hi {x} \"y\"'", `V104 1:1-1:13 ["\"hi {x} \\\"y\\\"\""]`, ""},
 		{"// note\nauth User", `V104 1:1-1:3 ["#"]`, "auth TYPEIDENT(User) EOF"},
 		{"a @ b", `V104 1:3-1:4 []`, "IDENT(a) IDENT(b) EOF"},
 		{"adə", `V104 1:3-1:4 []`, "IDENT(ad) EOF"},

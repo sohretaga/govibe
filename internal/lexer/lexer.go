@@ -692,7 +692,8 @@ func (l *lexer) singleQuoted() {
 	l.off = closing + 1
 	content := string(l.src[start+1 : l.off-1])
 	d := l.report(diag.V104, start, l.off, "\"'\"", "strings use double quotes")
-	l.fix(d, "Use double quotes", start, l.off, Quote(content))
+	// Only the quotes change, so {expr} in the text stays an interpolation.
+	l.fix(d, "Use double quotes", start, l.off, `"`+strings.ReplaceAll(content, `"`, `\"`)+`"`)
 	l.emit(token.String, start, l.off)
 	l.toks[len(l.toks)-1].Parts = []token.Part{{Pos: token.PosAt(start + 1), End: token.PosAt(l.off - 1), Text: content}}
 }

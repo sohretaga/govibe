@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a language or tooling change.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        GoVibe stays small on purpose: a keyword or syntax form is added only if it makes the code an agent writes shorter without adding ambiguity. Special cases usually belong in an `extern fn`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you building, and what is hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: syntax
+    attributes:
+      label: Proposed syntax
+      description: The .vibe code you would like to write, and what it should do.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: How can this be done today, with existing syntax or an `extern fn`? Why is that not enough?
+    validations:
+      required: true

@@ -1,0 +1,47 @@
+name: Bug report
+description: The vibe compiler or a generated app does not behave as the spec says.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please search existing issues first.
+        Never report security problems here: use the private security link on the "New issue" page.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `vibe version`.
+      placeholder: vibe v0.1.0, go1.27.3 linux/amd64
+    validations:
+      required: true
+  - type: textarea
+    id: snippet
+    attributes:
+      label: .vibe snippet
+      description: The smallest .vibe source that shows the problem.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen? Quote the spec section if one applies.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happens instead?
+    validations:
+      required: true
+  - type: textarea
+    id: check-json
+    attributes:
+      label: vibe check --json output
+      description: Run `vibe check --json` in the project root and paste the full output.
+      render: json
+    validations:
+      required: false

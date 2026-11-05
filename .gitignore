@@ -1,0 +1,28 @@
+# GoVibe build output
+.vibe/
+dist/
+
+# Binaries
+/vibe
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+
+# Coverage
+coverage.out
+
+# Editors and OS files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Agent files
+CLAUDE.md
+.claude/
+
+# Markdown files live outside the repository
+*.md

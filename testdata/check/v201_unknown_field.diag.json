@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V201",
+      "severity": "error",
+      "message": "Book has no field 'titel'",
+      "file": "v201_unknown_field.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 45
+        },
+        "end": {
+          "line": 19,
+          "col": 50
+        }
+      },
+      "snippet": "  get /books/search (q: Text?) = Book.where(titel contains q, published)",
+      "fixes": [
+        {
+          "title": "Did you mean 'title'?",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 19,
+                  "col": 45
+                },
+                "end": {
+                  "line": 19,
+                  "col": 50
+                }
+              },
+              "new_text": "title"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V201"
+    }
+  ]
+}

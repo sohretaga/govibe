@@ -1,0 +1,7 @@
+model Order {
+  book: Ref Book
+}
+
+model Book {
+  title: Text
+}

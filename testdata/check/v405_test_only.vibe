@@ -1,0 +1,25 @@
+app Shop {}
+
+auth User
+
+model User {
+  name: Text min 2
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  published: Bool = false
+}
+
+feature Books {
+  post /books/{id}/check {
+    let book = Book.find(id)
+    expect book.pages > 0
+    login_as(me)
+    return book
+  }
+}

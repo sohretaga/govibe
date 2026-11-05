@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V207",
+      "severity": "error",
+      "message": "model Book is declared more than once: at books.vibe:3 and at orders.vibe:5",
+      "file": "orders.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 7
+        },
+        "end": {
+          "line": 5,
+          "col": 11
+        }
+      },
+      "snippet": "model Book {",
+      "fixes": [],
+      "help": "vibe explain V207"
+    }
+  ]
+}

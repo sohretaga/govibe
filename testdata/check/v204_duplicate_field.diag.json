@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V204",
+      "severity": "error",
+      "message": "field 'title' is declared twice in model Book",
+      "file": "v204_duplicate_field.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 3
+        },
+        "end": {
+          "line": 5,
+          "col": 8
+        }
+      },
+      "snippet": "  title: Text min 2",
+      "fixes": [],
+      "help": "vibe explain V204"
+    },
+    {
+      "code": "V204",
+      "severity": "error",
+      "message": "field 'id' is declared twice in model Book, which has id, created_at and updated_at already",
+      "file": "v204_duplicate_field.vibe",
+      "range": {
+        "start": {
+          "line": 6,
+          "col": 3
+        },
+        "end": {
+          "line": 6,
+          "col": 5
+        }
+      },
+      "snippet": "  id: ID",
+      "fixes": [],
+      "help": "vibe explain V204"
+    }
+  ]
+}

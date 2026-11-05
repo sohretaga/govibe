@@ -1,0 +1,9 @@
+app Shop {}
+
+model Text {
+  body: Text
+}
+
+fn len(x: Int) -> Int {
+  return x
+}

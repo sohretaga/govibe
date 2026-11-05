@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V505",
+      "severity": "error",
+      "message": "Slug(pages) needs a Text field of Post: pages is Int",
+      "file": "v505_slug_source.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 14
+        },
+        "end": {
+          "line": 5,
+          "col": 19
+        }
+      },
+      "snippet": "  slug: Slug(pages)",
+      "fixes": [],
+      "help": "vibe explain V505"
+    }
+  ]
+}

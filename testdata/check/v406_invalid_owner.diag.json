@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V406",
+      "severity": "error",
+      "message": "crud Book cannot use owner 'seller': it must be a Ref to the auth model User, not Text",
+      "file": "v406_invalid_owner.vibe",
+      "range": {
+        "start": {
+          "line": 15,
+          "col": 29
+        },
+        "end": {
+          "line": 15,
+          "col": 35
+        }
+      },
+      "snippet": "  crud Book at /books owner seller",
+      "fixes": [],
+      "help": "vibe explain V406"
+    }
+  ]
+}

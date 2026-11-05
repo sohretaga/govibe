@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V304",
+      "severity": "error",
+      "message": "Money value 0.005 has more than 2 decimal places",
+      "file": "v304_money_precision.vibe",
+      "range": {
+        "start": {
+          "line": 4,
+          "col": 20
+        },
+        "end": {
+          "line": 4,
+          "col": 25
+        }
+      },
+      "snippet": "  price: Money min 0.005",
+      "fixes": [],
+      "help": "vibe explain V304"
+    }
+  ]
+}

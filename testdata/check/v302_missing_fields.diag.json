@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V302",
+      "severity": "error",
+      "message": "wrong arguments to Book.add: missing required fields 'pages', 'price'",
+      "file": "v302_missing_fields.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 13
+        },
+        "end": {
+          "line": 21,
+          "col": 50
+        }
+      },
+      "snippet": "    let b = Book.add(title: \"Dune\", seller: u.id)",
+      "fixes": [],
+      "help": "vibe explain V302"
+    }
+  ]
+}

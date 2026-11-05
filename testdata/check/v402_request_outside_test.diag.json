@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V402",
+      "severity": "error",
+      "message": "request GET /books outside a test: requests are only sent from test blocks",
+      "file": "v402_request_outside_test.vibe",
+      "range": {
+        "start": {
+          "line": 20,
+          "col": 15
+        },
+        "end": {
+          "line": 20,
+          "col": 25
+        }
+      },
+      "snippet": "    let res = get /books",
+      "fixes": [],
+      "help": "vibe explain V402"
+    }
+  ]
+}

@@ -29,14 +29,15 @@ type result struct {
 	Error       string            `json:"error,omitempty"`
 }
 
-// Check runs "vibe check" on the project in dir: it reports every
-// diagnostic and fails if there is an error.
+// Check runs "vibe check" on the project in dir: it parses and
+// type-checks the project, reports every diagnostic and fails if there is
+// an error.
 func Check(ctx context.Context, dir string, jsonOut bool, stdout, stderr io.Writer) int {
 	srcs, err := project.Read(ctx, dir)
 	if err != nil {
 		return fail(err, jsonOut, stdout, stderr)
 	}
-	_, diags := project.Parse(srcs)
+	_, diags := project.Check(srcs)
 	r := report(diags)
 	if jsonOut {
 		return emit(r, stdout, stderr)

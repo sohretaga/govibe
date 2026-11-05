@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V308",
+      "severity": "error",
+      "message": "not allowed in a query: 'price' is a field of Book; a field can only be compared, tested with contains or used alone as a Bool",
+      "file": "v308_query_expression.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 27
+        },
+        "end": {
+          "line": 19,
+          "col": 32
+        }
+      },
+      "snippet": "  get /cheap = Book.where(price * 2 < 10)",
+      "fixes": [],
+      "help": "vibe explain V308"
+    },
+    {
+      "code": "V308",
+      "severity": "error",
+      "message": "not allowed in a query: put the field on the left of contains, as in title contains q",
+      "file": "v308_query_expression.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 38
+        },
+        "end": {
+          "line": 21,
+          "col": 54
+        }
+      },
+      "snippet": "  get /search (q: Text) = Book.where(q contains title)",
+      "fixes": [],
+      "help": "vibe explain V308"
+    }
+  ]
+}

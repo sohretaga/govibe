@@ -1,0 +1,9 @@
+app Shop {}
+
+fn sign(n: Int) -> Int {
+  if n < 0 { return -1 }
+}
+
+fn double(n: Int) -> Int {
+  n * 2
+}

@@ -1,0 +1,23 @@
+app Shop {}
+
+auth User
+
+model User {
+  name: Text min 2
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  published: Bool = false
+}
+
+feature Books {
+  post /orders {
+    let res = get /books
+    return res.status
+  }
+}

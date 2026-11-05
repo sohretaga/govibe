@@ -1,0 +1,7 @@
+app Shop {}
+
+extern fn charge_card(amount: Money, token: Text) -> Text
+
+fn pay(amount: Money) -> Text {
+  return charge_card(amount, "tok")
+}

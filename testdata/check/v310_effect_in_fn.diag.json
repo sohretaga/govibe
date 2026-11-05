@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V310",
+      "severity": "error",
+      "message": "fn seller_name cannot run queries: a fn is pure; do this in a route or test",
+      "file": "v310_effect_in_fn.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 10
+        },
+        "end": {
+          "line": 19,
+          "col": 23
+        }
+      },
+      "snippet": "  return User.find(id).name",
+      "fixes": [],
+      "help": "vibe explain V310"
+    },
+    {
+      "code": "V310",
+      "severity": "error",
+      "message": "fn check cannot fail: a fn is pure; do this in a route or test",
+      "file": "v310_effect_in_fn.vibe",
+      "range": {
+        "start": {
+          "line": 23,
+          "col": 14
+        },
+        "end": {
+          "line": 23,
+          "col": 29
+        }
+      },
+      "snippet": "  if n < 0 { fail \"negative\" }",
+      "fixes": [],
+      "help": "vibe explain V310"
+    }
+  ]
+}

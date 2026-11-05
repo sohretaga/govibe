@@ -1,0 +1,16 @@
+app Shop {}
+
+model Post {
+  title: Text
+  slug: Slug(title)
+}
+
+model Comment {
+  body: Text
+}
+
+feature Blog {
+  crud Post at /posts/{slugg}
+
+  crud Comment at /posts/{post_id}/comments
+}

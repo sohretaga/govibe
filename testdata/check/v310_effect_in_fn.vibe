@@ -1,0 +1,25 @@
+app Shop {}
+
+auth User
+
+model User {
+  name: Text min 2
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  published: Bool = false
+}
+
+fn seller_name(id: ID) -> Text {
+  return User.find(id).name
+}
+
+fn check(n: Int) -> Int {
+  if n < 0 { fail "negative" }
+  return n
+}

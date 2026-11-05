@@ -1,0 +1,6 @@
+app Shop {}
+
+fn sign(n: Int) -> Int {
+  if n { return 1 }
+  return 0
+}

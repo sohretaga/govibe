@@ -1,0 +1,7 @@
+app Shop {}
+
+model Book {
+  title: Text
+  title: Text min 2
+  id: ID
+}

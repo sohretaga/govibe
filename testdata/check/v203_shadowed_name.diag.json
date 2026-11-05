@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V203",
+      "severity": "error",
+      "message": "'book' is already declared in this block, at line 20",
+      "file": "v203_shadowed_name.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 9
+        },
+        "end": {
+          "line": 21,
+          "col": 13
+        }
+      },
+      "snippet": "    let book = book.update(published: true)",
+      "fixes": [],
+      "help": "vibe explain V203"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V206",
+      "severity": "error",
+      "message": "Book.find cannot use 'title', which is not unique",
+      "file": "v206_find_not_unique.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 45
+        },
+        "end": {
+          "line": 19,
+          "col": 50
+        }
+      },
+      "snippet": "  get /books/by-title (t: Text) = Book.find(title: t)",
+      "fixes": [
+        {
+          "title": "Use Book.where(title == t).first()",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 19,
+                  "col": 35
+                },
+                "end": {
+                  "line": 19,
+                  "col": 54
+                }
+              },
+              "new_text": "Book.where(title == t).first()"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V206"
+    }
+  ]
+}

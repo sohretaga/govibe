@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V208",
+      "severity": "error",
+      "message": "unknown type 'Integer'",
+      "file": "v208_unknown_type.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 13
+        },
+        "end": {
+          "line": 3,
+          "col": 20
+        }
+      },
+      "snippet": "fn total(n: Integer, m: Int) -> Int {",
+      "fixes": [
+        {
+          "title": "Use 'Int'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 13
+                },
+                "end": {
+                  "line": 3,
+                  "col": 20
+                }
+              },
+              "new_text": "Int"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V208"
+    }
+  ]
+}

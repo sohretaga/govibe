@@ -1,0 +1,62 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V502",
+      "severity": "error",
+      "message": "min is not valid on Bool field published",
+      "file": "v502_invalid_modifier.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 19
+        },
+        "end": {
+          "line": 5,
+          "col": 24
+        }
+      },
+      "snippet": "  published: Bool min 0",
+      "fixes": [],
+      "help": "vibe explain V502"
+    },
+    {
+      "code": "V502",
+      "severity": "error",
+      "message": "a default is not valid on Slug field slug: a slug is generated from its source",
+      "file": "v502_invalid_modifier.vibe",
+      "range": {
+        "start": {
+          "line": 6,
+          "col": 23
+        },
+        "end": {
+          "line": 6,
+          "col": 26
+        }
+      },
+      "snippet": "  slug: Slug(title) = \"x\"",
+      "fixes": [],
+      "help": "vibe explain V502"
+    },
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: min of field pages must be Int, not Float",
+      "file": "v502_invalid_modifier.vibe",
+      "range": {
+        "start": {
+          "line": 7,
+          "col": 18
+        },
+        "end": {
+          "line": 7,
+          "col": 21
+        }
+      },
+      "snippet": "  pages: Int min 1.5",
+      "fixes": [],
+      "help": "vibe explain V301"
+    }
+  ]
+}

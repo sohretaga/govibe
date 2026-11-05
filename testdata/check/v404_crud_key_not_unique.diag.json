@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V404",
+      "severity": "error",
+      "message": "crud Member cannot look up records by 'username', which is not unique",
+      "file": "v404_crud_key_not_unique.vibe",
+      "range": {
+        "start": {
+          "line": 8,
+          "col": 27
+        },
+        "end": {
+          "line": 8,
+          "col": 37
+        }
+      },
+      "snippet": "  crud Member at /members/{username}",
+      "fixes": [],
+      "help": "vibe explain V404"
+    }
+  ]
+}

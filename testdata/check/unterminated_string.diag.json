@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V102",
+      "severity": "error",
+      "message": "unterminated string: add '\"' before the end of the line",
+      "file": "unterminated_string.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 19
+        },
+        "end": {
+          "line": 3,
+          "col": 37
+        }
+      },
+      "snippet": "    fail conflict \"already published",
+      "fixes": [
+        {
+          "title": "Close the string",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 37
+                },
+                "end": {
+                  "line": 3,
+                  "col": 37
+                }
+              },
+              "new_text": "\""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V102"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V107",
+      "severity": "error",
+      "message": "call to 'Book.add' mixes named and positional arguments",
+      "file": "mixed_arguments.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 30
+        },
+        "end": {
+          "line": 3,
+          "col": 40
+        }
+      },
+      "snippet": "    let b = Book.add(\"Dune\", pages: 412)",
+      "fixes": [],
+      "help": "vibe explain V107"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+feature Books {
+  test "add" {
+    let b = Book.add("Dune", pages: 412)
+  }
+}

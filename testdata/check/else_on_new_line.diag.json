@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected statement, found keyword 'else' at the start of a line; else goes on the same line as the '}' before it",
+      "file": "else_on_new_line.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 3
+        },
+        "end": {
+          "line": 5,
+          "col": 7
+        }
+      },
+      "snippet": "  else {",
+      "fixes": [
+        {
+          "title": "Move else after '}'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 4,
+                  "col": 4
+                },
+                "end": {
+                  "line": 5,
+                  "col": 3
+                }
+              },
+              "new_text": " "
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

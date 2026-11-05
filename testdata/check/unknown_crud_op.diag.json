@@ -1,0 +1,81 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected crud operation (list, get, create, update or delete), found name 'read'",
+      "file": "unknown_crud_op.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 34
+        },
+        "end": {
+          "line": 2,
+          "col": 38
+        }
+      },
+      "snippet": "  crud Book at /books only list, read, remove",
+      "fixes": [
+        {
+          "title": "Use 'get'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 34
+                },
+                "end": {
+                  "line": 2,
+                  "col": 38
+                }
+              },
+              "new_text": "get"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    },
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected crud operation (list, get, create, update or delete), found name 'remove'",
+      "file": "unknown_crud_op.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 40
+        },
+        "end": {
+          "line": 2,
+          "col": 46
+        }
+      },
+      "snippet": "  crud Book at /books only list, read, remove",
+      "fixes": [
+        {
+          "title": "Use 'delete'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 40
+                },
+                "end": {
+                  "line": 2,
+                  "col": 46
+                }
+              },
+              "new_text": "delete"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected ':' after field name 'title', found type name 'Text'",
+      "file": "several_errors.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 9
+        },
+        "end": {
+          "line": 2,
+          "col": 13
+        }
+      },
+      "snippet": "  title Text",
+      "fixes": [
+        {
+          "title": "Insert ':'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 8
+                },
+                "end": {
+                  "line": 2,
+                  "col": 8
+                }
+              },
+              "new_text": ":"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    },
+    {
+      "code": "V106",
+      "severity": "error",
+      "message": "invalid number '1_': '_' must stand between two digits",
+      "file": "several_errors.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 18
+        },
+        "end": {
+          "line": 3,
+          "col": 20
+        }
+      },
+      "snippet": "  pages: Int min 1_",
+      "fixes": [],
+      "help": "vibe explain V106"
+    },
+    {
+      "code": "V104",
+      "severity": "error",
+      "message": "invalid character '&&': use 'and'",
+      "file": "several_errors.vibe",
+      "range": {
+        "start": {
+          "line": 7,
+          "col": 29
+        },
+        "end": {
+          "line": 7,
+          "col": 31
+        }
+      },
+      "snippet": "  get /books = Book.where(a && b)",
+      "fixes": [
+        {
+          "title": "Use 'and'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 7,
+                  "col": 29
+                },
+                "end": {
+                  "line": 7,
+                  "col": 31
+                }
+              },
+              "new_text": "and"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V104"
+    },
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected feature item (crud, get, post, patch, delete, fn or test), found name 'put'",
+      "file": "several_errors.vibe",
+      "range": {
+        "start": {
+          "line": 8,
+          "col": 3
+        },
+        "end": {
+          "line": 8,
+          "col": 6
+        }
+      },
+      "snippet": "  put /books/{id} = 1",
+      "fixes": [
+        {
+          "title": "Use 'patch'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 8,
+                  "col": 3
+                },
+                "end": {
+                  "line": 8,
+                  "col": 6
+                }
+              },
+              "new_text": "patch"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

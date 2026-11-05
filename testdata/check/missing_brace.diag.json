@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected '}' to close model Book, found keyword 'model'",
+      "file": "missing_brace.vibe",
+      "range": {
+        "start": {
+          "line": 4,
+          "col": 1
+        },
+        "end": {
+          "line": 4,
+          "col": 6
+        }
+      },
+      "snippet": "model User {",
+      "fixes": [],
+      "help": "vibe explain V101"
+    }
+  ]
+}

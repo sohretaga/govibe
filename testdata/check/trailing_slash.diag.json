@@ -1,0 +1,81 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V109",
+      "severity": "error",
+      "message": "invalid path '/Books/': segment 'Books' may only use lowercase letters, digits, '_' and '-'",
+      "file": "trailing_slash.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 16
+        },
+        "end": {
+          "line": 2,
+          "col": 23
+        }
+      },
+      "snippet": "  crud Book at /Books/",
+      "fixes": [
+        {
+          "title": "Use 'books'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 17
+                },
+                "end": {
+                  "line": 2,
+                  "col": 22
+                }
+              },
+              "new_text": "books"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V109"
+    },
+    {
+      "code": "V109",
+      "severity": "error",
+      "message": "invalid path '/Books/': remove the trailing '/'",
+      "file": "trailing_slash.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 16
+        },
+        "end": {
+          "line": 2,
+          "col": 23
+        }
+      },
+      "snippet": "  crud Book at /Books/",
+      "fixes": [
+        {
+          "title": "Remove the trailing '/'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 22
+                },
+                "end": {
+                  "line": 2,
+                  "col": 23
+                }
+              },
+              "new_text": ""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V109"
+    }
+  ]
+}

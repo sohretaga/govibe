@@ -1,0 +1,4 @@
+fn is_zero(n: Int) -> Bool {
+  if n = 0 { return true }
+  return false
+}

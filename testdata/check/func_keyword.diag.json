@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected declaration (app, auth, model, feature, fn or extern), found name 'func'",
+      "file": "func_keyword.vibe",
+      "range": {
+        "start": {
+          "line": 1,
+          "col": 1
+        },
+        "end": {
+          "line": 1,
+          "col": 5
+        }
+      },
+      "snippet": "func double(x: Int) -> Int {",
+      "fixes": [
+        {
+          "title": "Use 'fn'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 1,
+                  "col": 1
+                },
+                "end": {
+                  "line": 1,
+                  "col": 5
+                }
+              },
+              "new_text": "fn"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

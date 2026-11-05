@@ -1,0 +1,81 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V108",
+      "severity": "error",
+      "message": "field name 'createdBy' must be snake_case: write 'created_by'",
+      "file": "camel_case_field.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 3
+        },
+        "end": {
+          "line": 2,
+          "col": 12
+        }
+      },
+      "snippet": "  createdBy: Ref User",
+      "fixes": [
+        {
+          "title": "Write 'created_by'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 3
+                },
+                "end": {
+                  "line": 2,
+                  "col": 12
+                }
+              },
+              "new_text": "created_by"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V108"
+    },
+    {
+      "code": "V108",
+      "severity": "error",
+      "message": "field name 'pageCount' must be snake_case: write 'page_count'",
+      "file": "camel_case_field.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 3
+        },
+        "end": {
+          "line": 3,
+          "col": 12
+        }
+      },
+      "snippet": "  pageCount: Int",
+      "fixes": [
+        {
+          "title": "Write 'page_count'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 3
+                },
+                "end": {
+                  "line": 3,
+                  "col": 12
+                }
+              },
+              "new_text": "page_count"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V108"
+    }
+  ]
+}

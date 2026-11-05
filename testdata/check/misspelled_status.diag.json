@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected status name (invalid, login_required, forbidden, not_found or conflict), found name 'confict'",
+      "file": "misspelled_status.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 10
+        },
+        "end": {
+          "line": 3,
+          "col": 17
+        }
+      },
+      "snippet": "    fail confict \"already published\"",
+      "fixes": [
+        {
+          "title": "Use 'conflict'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 10
+                },
+                "end": {
+                  "line": 3,
+                  "col": 17
+                }
+              },
+              "new_text": "conflict"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

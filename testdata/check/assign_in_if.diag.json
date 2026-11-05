@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected '{' after the if condition, found '='; compare with '=='",
+      "file": "assign_in_if.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 8
+        },
+        "end": {
+          "line": 2,
+          "col": 9
+        }
+      },
+      "snippet": "  if n = 0 { return true }",
+      "fixes": [
+        {
+          "title": "Use '=='",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 8
+                },
+                "end": {
+                  "line": 2,
+                  "col": 9
+                }
+              },
+              "new_text": "=="
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V103",
+      "severity": "error",
+      "message": "invalid escape '\\$' in string",
+      "file": "invalid_escape.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 17
+        },
+        "end": {
+          "line": 2,
+          "col": 19
+        }
+      },
+      "snippet": "  return \"costs \\$\" + str(p)",
+      "fixes": [
+        {
+          "title": "Remove the backslash",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 17
+                },
+                "end": {
+                  "line": 2,
+                  "col": 18
+                }
+              },
+              "new_text": ""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V103"
+    }
+  ]
+}

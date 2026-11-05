@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V105",
+      "severity": "error",
+      "message": "comparison '0 < n < 10' cannot be chained",
+      "file": "chained_comparison.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 10
+        },
+        "end": {
+          "line": 2,
+          "col": 20
+        }
+      },
+      "snippet": "  return 0 < n < 10",
+      "fixes": [
+        {
+          "title": "Use '0 < n and n < 10'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 10
+                },
+                "end": {
+                  "line": 2,
+                  "col": 20
+                }
+              },
+              "new_text": "0 < n and n < 10"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V105"
+    }
+  ]
+}

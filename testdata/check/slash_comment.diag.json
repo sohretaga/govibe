@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V104",
+      "severity": "error",
+      "message": "invalid character '//': comments start with '#'",
+      "file": "slash_comment.vibe",
+      "range": {
+        "start": {
+          "line": 1,
+          "col": 1
+        },
+        "end": {
+          "line": 1,
+          "col": 3
+        }
+      },
+      "snippet": "// books feature",
+      "fixes": [
+        {
+          "title": "Use '#'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 1,
+                  "col": 1
+                },
+                "end": {
+                  "line": 1,
+                  "col": 3
+                }
+              },
+              "new_text": "#"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V104"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+feature Books {
+  get /books/big = Book.where(pages > 1e3)
+}

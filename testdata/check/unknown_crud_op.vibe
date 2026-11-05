@@ -1,0 +1,3 @@
+feature Books {
+  crud Book at /books only list, read, remove
+}

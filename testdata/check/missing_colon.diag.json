@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected ':' after field name 'title', found type name 'Text'",
+      "file": "missing_colon.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 9
+        },
+        "end": {
+          "line": 2,
+          "col": 13
+        }
+      },
+      "snippet": "  title Text min 2",
+      "fixes": [
+        {
+          "title": "Insert ':'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 8
+                },
+                "end": {
+                  "line": 2,
+                  "col": 8
+                }
+              },
+              "new_text": ":"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

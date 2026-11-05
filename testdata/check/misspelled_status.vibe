@@ -1,0 +1,5 @@
+feature Books {
+  post /books/{id}/publish {
+    fail confict "already published"
+  }
+}

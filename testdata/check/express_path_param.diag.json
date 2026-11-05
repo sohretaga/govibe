@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V109",
+      "severity": "error",
+      "message": "invalid path '/books/:id': write a path parameter as {id}",
+      "file": "express_path_param.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 7
+        },
+        "end": {
+          "line": 2,
+          "col": 17
+        }
+      },
+      "snippet": "  get /books/:id = Book.find(id)",
+      "fixes": [
+        {
+          "title": "Use {id}",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 14
+                },
+                "end": {
+                  "line": 2,
+                  "col": 17
+                }
+              },
+              "new_text": "{id}"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V109"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+model book_review {
+  stars: Int min 1 max 5
+}

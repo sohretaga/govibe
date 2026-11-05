@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected '}' to close feature Books, found end of file",
+      "file": "missing_brace_eof.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 1
+        },
+        "end": {
+          "line": 3,
+          "col": 1
+        }
+      },
+      "snippet": "",
+      "fixes": [
+        {
+          "title": "Insert '}' at the end of the file",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 1
+                },
+                "end": {
+                  "line": 3,
+                  "col": 1
+                }
+              },
+              "new_text": "}\n"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

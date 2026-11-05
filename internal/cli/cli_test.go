@@ -295,6 +295,46 @@ func TestFmtExamples(t *testing.T) {
 	}
 }
 
+func TestRoutesGolden(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := Routes(context.Background(), "../../examples/library", false, &stdout, &stderr); code != ExitOK {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	golden.Assert(t, "testdata/library.routes.golden", stdout.Bytes())
+	stdout.Reset()
+	if code := Routes(context.Background(), "../../examples/library", true, &stdout, &stderr); code != ExitOK {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	golden.Assert(t, "testdata/library.routes.json", stdout.Bytes())
+}
+
+func TestRoutesWithErrors(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "model Book {\n  title: Text\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Routes(context.Background(), dir, true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil || code != ExitFailure || r.OK || r.Routes != nil {
+		t.Errorf("exit %d, %+v, %v", code, r, err)
+	}
+}
+
+func TestExplain(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := Explain("v201", false, &stdout, &stderr); code != ExitOK || !strings.HasPrefix(stdout.String(), "V201: unknown field\n") || !strings.Contains(stdout.String(), "Before:") {
+		t.Errorf("explain v201: %d %q", code, stdout.String())
+	}
+	stdout.Reset()
+	if code := Explain("V999", true, &stdout, &stderr); code != ExitFailure || !strings.Contains(stdout.String(), `"ok": false`) {
+		t.Errorf("explain V999: %d %q", code, stdout.String())
+	}
+	for _, info := range diag.All() {
+		stdout.Reset()
+		if code := Explain(string(info.Code), true, &stdout, &stderr); code != ExitOK {
+			t.Errorf("explain %s: exit %d", info.Code, code)
+		}
+	}
+}
+
 // TestCheckSpeed checks the spec's target: vibe check on 5,000 lines in
 // under 100 ms. It runs the reference app copied into many files.
 func TestCheckSpeed(t *testing.T) {

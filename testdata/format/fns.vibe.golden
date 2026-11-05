@@ -1,0 +1,20 @@
+extern fn charge_card(amount: Money, token: Text) -> Text
+
+extern fn send_sms(to: Text, body: Text) -> Bool
+
+extern fn nothing() -> [Text]?
+
+fn double(x: Int) -> Int {
+  return x * 2
+}
+
+fn greet(name: Text, loud: Bool = false) -> Text {
+  if loud { return "HELLO {name.upper()}" }
+  return "hello {name}"
+}
+
+feature Helpers {
+  fn local(xs: [Int]) -> Int? {
+    return none
+  }
+}

@@ -1,0 +1,17 @@
+feature Tests {
+  test "requests" {
+    let u = User.add(name: "Ursula", email: "ursula@example.com")
+    login_as(u)
+    let res = post /books (title: "Dune", pages: 412, price: 9.99)
+    expect res.status == created
+    expect res.body.published == false
+    expect (get /books).status == ok
+    expect (get /books/search (q: "Dune", limit: 5)).body.count == 1
+    expect (patch /books/{res.body.id} (title: "Dune Messiah")).status == ok
+    expect (delete /books/{res.body.id}).status == empty
+    expect (post /books/{u.id}/{"x"}/publish).status == not_found
+    get /healthz
+  }
+
+  test "empty" {}
+}

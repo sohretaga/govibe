@@ -110,7 +110,8 @@ func pos(f *token.File, p token.Pos) ir.Pos {
 
 func quote(s string) string { return "'" + s + "'" }
 
-// snake converts a PascalCase model name to a table name.
+// snake converts a PascalCase name to snake_case: BookReview becomes
+// book_review.
 func snake(name string) string {
 	var b strings.Builder
 	for i, r := range name {
@@ -198,7 +199,7 @@ func (c *checker) collectApp(f *token.File, d *ast.AppDecl) {
 		return
 	}
 	c.app = &decl{f, d}
-	app := &ir.App{Name: d.Name.Name, Pos: pos(f, d.Pos())}
+	app := &ir.App{Name: d.Name.Name, Snake: snake(d.Name.Name), Pos: pos(f, d.Pos())}
 	if d.DB != nil {
 		if url, ok := plainString(d.DB.URL); ok {
 			app.DB = url

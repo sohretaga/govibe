@@ -1,0 +1,103 @@
+File Name="comments.vibe"
+  Decls[0]: AppDecl
+    Name: Ident Name="Notes"
+    DB: DBSetting
+      URL: StringLit
+        Parts[0]: StringPart Text="sqlite://notes.db"
+  Decls[1]: AuthDecl
+    Model: Ident Name="User"
+  Decls[2]: ModelDecl
+    Name: Ident Name="User"
+    Fields[0]: Field
+      Name: Ident Name="name"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="2"
+    Fields[1]: Field
+      Name: Ident Name="email"
+      Type: NamedType
+        Name: Ident Name="Email"
+      Mods[0]: FieldMod Kind="unique"
+  Decls[3]: FeatureDecl
+    Name: Ident Name="Notes"
+    Items[0]: CrudDecl
+      Model: Ident Name="Note"
+      Path: Path
+        Segments[0]: PathSegment Text="notes"
+    Items[1]: RouteDecl Method="post"
+      Path: Path
+        Segments[0]: PathSegment Text="notes"
+        Segments[1]: PathSegment
+          X: Ident Name="id"
+        Segments[2]: PathSegment Text="pin"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="note"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Note"
+              Sel: Ident Name="find"
+            Args[0]: Arg
+              Value: Ident Name="id"
+        Stmts[1]: IfStmt
+          Cond: SelectorExpr
+            X: Ident Name="note"
+            Sel: Ident Name="pinned"
+          Then: Block
+            Stmts[0]: FailStmt
+              Status: Ident Name="conflict"
+              Message: StringLit
+                Parts[0]: StringPart Text="pinned"
+        Stmts[2]: ReturnStmt
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="note"
+              Sel: Ident Name="update"
+            Args[0]: Arg
+              Name: Ident Name="pinned"
+              Value: BasicLit Kind="true" Value="true"
+    Items[2]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="comment inside args"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="n"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Note"
+              Sel: Ident Name="add"
+            Args[0]: Arg
+              Name: Ident Name="text"
+              Value: StringLit
+                Parts[0]: StringPart Text="x"
+            Args[1]: Arg
+              Name: Ident Name="pinned"
+              Value: BasicLit Kind="false" Value="false"
+        Stmts[1]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: Ident Name="n"
+              Sel: Ident Name="pinned"
+            Y: BasicLit Kind="false" Value="false"
+  Comments[0]: Comment Text="# Header comment."
+  Comments[1]: Comment Text="#"
+  Comments[2]: Comment Text="# With a blank comment line."
+  Comments[3]: Comment Text="# Before the app."
+  Comments[4]: Comment Text="# after the brace"
+  Comments[5]: Comment Text="# the database"
+  Comments[6]: Comment Text="# after the app"
+  Comments[7]: Comment Text="# trailing"
+  Comments[8]: Comment Text="# inside, before a field"
+  Comments[9]: Comment Text="# trailing field comment"
+  Comments[10]: Comment Text="# after a blank line"
+  Comments[11]: Comment Text="# before the closing brace"
+  Comments[12]: Comment Text="# first item comment"
+  Comments[13]: Comment Text="# crud comment"
+  Comments[14]: Comment Text="# leading statement comment"
+  Comments[15]: Comment Text="# trailing"
+  Comments[16]: Comment Text="# one-line if"
+  Comments[17]: Comment Text="# end of block"
+  Comments[18]: Comment Text="# hoisted"
+  Comments[19]: Comment Text="# also hoisted"
+  Comments[20]: Comment Text="# Final comment."

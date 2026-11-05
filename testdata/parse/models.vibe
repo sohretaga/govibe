@@ -1,0 +1,32 @@
+app Shop {
+  db "sqlite://shop.db"
+}
+
+app Bare {}
+
+auth Customer
+
+model Customer {
+  name: Text min 2 max 120
+  email: Email unique
+  nickname: Text?
+  born: Time?
+}
+
+model Product {
+  title: Text min 3 max 200
+  slug: Slug(title)
+  price: Money min 0
+  weight: Float min 0.5 max 99.5
+  stock: Int = 0
+  rating: Float = 4.5
+  tagline: Text = "new"
+  active: Bool = true
+  archived: Bool = false
+  note: Text? = none
+  sku: ID unique
+  seller: Ref Customer
+  reviewer: Ref Customer?
+}
+
+model Empty {}

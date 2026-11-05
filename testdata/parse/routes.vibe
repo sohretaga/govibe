@@ -1,0 +1,26 @@
+feature Routes {
+  get / = "home"
+
+  get /books/search (q: Text?, limit = 20) = Book.where(title contains q, published).newest().limit(limit)
+
+  get /stats (from: Time, tags: [Text], ids: [ID]?, page: Int = 1, flag = true, ratio = 0.5, label = "x", none_value: Text? = none,) = len(tags)
+
+  post /books/{id}/publish {
+    let book = Book.find(id)
+    return book.update(published: true)
+  }
+
+  patch /users/{user_id}/name (name: Text) {
+    return User.find(user_id).update(name: name)
+  }
+
+  delete /sessions/{token} {
+    return
+  }
+
+  post /orders (order: Order) {
+    return Order.add(book: order.book, quantity: order.quantity)
+  }
+
+  get /v2/user-books_x = 1
+}

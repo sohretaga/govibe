@@ -1,0 +1,36 @@
+feature Statements {
+  post /check/{id} (amount: Money) {
+    let book = Book.find(id)
+    let total = amount * 2
+
+    if total > 100 { fail "too much" }
+    if book.seller != me.id { fail forbidden "not your book" }
+    if book.published { fail conflict "already published" }
+    if amount < 0 { fail invalid "negative" }
+    if false { fail login_required "log in" }
+    if book.archived { fail not_found "gone" }
+    if amount == 1 { return book }
+    if amount == 2 { return }
+    if amount == 3 {
+      let x = 1
+      return x
+    }
+    if amount == 4 {
+      return 4
+    } else {
+      return 5
+    }
+    if amount == 6 {
+      return 6
+    } else if amount == 7 {
+      return 7
+    } else if amount == 8 {
+      fail "eight"
+    } else {
+      return 9
+    }
+    fail 409 "taken"
+    book.delete()
+    return book
+  }
+}

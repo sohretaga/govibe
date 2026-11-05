@@ -1,0 +1,111 @@
+File Name="models.vibe"
+  Decls[0]: AppDecl
+    Name: Ident Name="Shop"
+    DB: DBSetting
+      URL: StringLit
+        Parts[0]: StringPart Text="sqlite://shop.db"
+  Decls[1]: AppDecl
+    Name: Ident Name="Bare"
+  Decls[2]: AuthDecl
+    Model: Ident Name="Customer"
+  Decls[3]: ModelDecl
+    Name: Ident Name="Customer"
+    Fields[0]: Field
+      Name: Ident Name="name"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="2"
+      Mods[1]: FieldMod Kind="max"
+        Value: BasicLit Kind="INT" Value="120"
+    Fields[1]: Field
+      Name: Ident Name="email"
+      Type: NamedType
+        Name: Ident Name="Email"
+      Mods[0]: FieldMod Kind="unique"
+    Fields[2]: Field
+      Name: Ident Name="nickname"
+      Type: OptionalType
+        Elem: NamedType
+          Name: Ident Name="Text"
+    Fields[3]: Field
+      Name: Ident Name="born"
+      Type: OptionalType
+        Elem: NamedType
+          Name: Ident Name="Time"
+  Decls[4]: ModelDecl
+    Name: Ident Name="Product"
+    Fields[0]: Field
+      Name: Ident Name="title"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="3"
+      Mods[1]: FieldMod Kind="max"
+        Value: BasicLit Kind="INT" Value="200"
+    Fields[1]: Field
+      Name: Ident Name="slug"
+      Type: SlugType
+        Source: Ident Name="title"
+    Fields[2]: Field
+      Name: Ident Name="price"
+      Type: NamedType
+        Name: Ident Name="Money"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="0"
+    Fields[3]: Field
+      Name: Ident Name="weight"
+      Type: NamedType
+        Name: Ident Name="Float"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="FLOAT" Value="0.5"
+      Mods[1]: FieldMod Kind="max"
+        Value: BasicLit Kind="FLOAT" Value="99.5"
+    Fields[4]: Field
+      Name: Ident Name="stock"
+      Type: NamedType
+        Name: Ident Name="Int"
+      Default: BasicLit Kind="INT" Value="0"
+    Fields[5]: Field
+      Name: Ident Name="rating"
+      Type: NamedType
+        Name: Ident Name="Float"
+      Default: BasicLit Kind="FLOAT" Value="4.5"
+    Fields[6]: Field
+      Name: Ident Name="tagline"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Default: StringLit
+        Parts[0]: StringPart Text="new"
+    Fields[7]: Field
+      Name: Ident Name="active"
+      Type: NamedType
+        Name: Ident Name="Bool"
+      Default: BasicLit Kind="true" Value="true"
+    Fields[8]: Field
+      Name: Ident Name="archived"
+      Type: NamedType
+        Name: Ident Name="Bool"
+      Default: BasicLit Kind="false" Value="false"
+    Fields[9]: Field
+      Name: Ident Name="note"
+      Type: OptionalType
+        Elem: NamedType
+          Name: Ident Name="Text"
+      Default: BasicLit Kind="none" Value="none"
+    Fields[10]: Field
+      Name: Ident Name="sku"
+      Type: NamedType
+        Name: Ident Name="ID"
+      Mods[0]: FieldMod Kind="unique"
+    Fields[11]: Field
+      Name: Ident Name="seller"
+      Type: RefType
+        Model: Ident Name="Customer"
+    Fields[12]: Field
+      Name: Ident Name="reviewer"
+      Type: OptionalType
+        Elem: RefType
+          Model: Ident Name="Customer"
+  Decls[5]: ModelDecl
+    Name: Ident Name="Empty"

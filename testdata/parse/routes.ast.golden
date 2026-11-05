@@ -1,0 +1,162 @@
+File Name="routes.vibe"
+  Decls[0]: FeatureDecl
+    Name: Ident Name="Routes"
+    Items[0]: RouteDecl Method="get"
+      Path: Path
+      Value: StringLit
+        Parts[0]: StringPart Text="home"
+    Items[1]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+        Segments[1]: PathSegment Text="search"
+      Params[0]: Param
+        Name: Ident Name="q"
+        Type: OptionalType
+          Elem: NamedType
+            Name: Ident Name="Text"
+      Params[1]: Param
+        Name: Ident Name="limit"
+        Default: BasicLit Kind="INT" Value="20"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: CallExpr
+            Fun: SelectorExpr
+              X: CallExpr
+                Fun: SelectorExpr
+                  X: Ident Name="Book"
+                  Sel: Ident Name="where"
+                Args[0]: Arg
+                  Value: BinaryExpr Op="contains"
+                    X: Ident Name="title"
+                    Y: Ident Name="q"
+                Args[1]: Arg
+                  Value: Ident Name="published"
+              Sel: Ident Name="newest"
+          Sel: Ident Name="limit"
+        Args[0]: Arg
+          Value: Ident Name="limit"
+    Items[2]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="stats"
+      Params[0]: Param
+        Name: Ident Name="from"
+        Type: NamedType
+          Name: Ident Name="Time"
+      Params[1]: Param
+        Name: Ident Name="tags"
+        Type: ListType
+          Elem: NamedType
+            Name: Ident Name="Text"
+      Params[2]: Param
+        Name: Ident Name="ids"
+        Type: OptionalType
+          Elem: ListType
+            Elem: NamedType
+              Name: Ident Name="ID"
+      Params[3]: Param
+        Name: Ident Name="page"
+        Type: NamedType
+          Name: Ident Name="Int"
+        Default: BasicLit Kind="INT" Value="1"
+      Params[4]: Param
+        Name: Ident Name="flag"
+        Default: BasicLit Kind="true" Value="true"
+      Params[5]: Param
+        Name: Ident Name="ratio"
+        Default: BasicLit Kind="FLOAT" Value="0.5"
+      Params[6]: Param
+        Name: Ident Name="label"
+        Default: StringLit
+          Parts[0]: StringPart Text="x"
+      Params[7]: Param
+        Name: Ident Name="none_value"
+        Type: OptionalType
+          Elem: NamedType
+            Name: Ident Name="Text"
+        Default: BasicLit Kind="none" Value="none"
+      Value: CallExpr
+        Fun: Ident Name="len"
+        Args[0]: Arg
+          Value: Ident Name="tags"
+    Items[3]: RouteDecl Method="post"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+        Segments[1]: PathSegment
+          X: Ident Name="id"
+        Segments[2]: PathSegment Text="publish"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="book"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Book"
+              Sel: Ident Name="find"
+            Args[0]: Arg
+              Value: Ident Name="id"
+        Stmts[1]: ReturnStmt
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="book"
+              Sel: Ident Name="update"
+            Args[0]: Arg
+              Name: Ident Name="published"
+              Value: BasicLit Kind="true" Value="true"
+    Items[4]: RouteDecl Method="patch"
+      Path: Path
+        Segments[0]: PathSegment Text="users"
+        Segments[1]: PathSegment
+          X: Ident Name="user_id"
+        Segments[2]: PathSegment Text="name"
+      Params[0]: Param
+        Name: Ident Name="name"
+        Type: NamedType
+          Name: Ident Name="Text"
+      Body: Block
+        Stmts[0]: ReturnStmt
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: CallExpr
+                Fun: SelectorExpr
+                  X: Ident Name="User"
+                  Sel: Ident Name="find"
+                Args[0]: Arg
+                  Value: Ident Name="user_id"
+              Sel: Ident Name="update"
+            Args[0]: Arg
+              Name: Ident Name="name"
+              Value: Ident Name="name"
+    Items[5]: RouteDecl Method="delete"
+      Path: Path
+        Segments[0]: PathSegment Text="sessions"
+        Segments[1]: PathSegment
+          X: Ident Name="token"
+      Body: Block
+        Stmts[0]: ReturnStmt
+    Items[6]: RouteDecl Method="post"
+      Path: Path
+        Segments[0]: PathSegment Text="orders"
+      Params[0]: Param
+        Name: Ident Name="order"
+        Type: NamedType
+          Name: Ident Name="Order"
+      Body: Block
+        Stmts[0]: ReturnStmt
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Order"
+              Sel: Ident Name="add"
+            Args[0]: Arg
+              Name: Ident Name="book"
+              Value: SelectorExpr
+                X: Ident Name="order"
+                Sel: Ident Name="book"
+            Args[1]: Arg
+              Name: Ident Name="quantity"
+              Value: SelectorExpr
+                X: Ident Name="order"
+                Sel: Ident Name="quantity"
+    Items[7]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="v2"
+        Segments[1]: PathSegment Text="user-books_x"
+      Value: BasicLit Kind="INT" Value="1"

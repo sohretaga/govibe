@@ -1,0 +1,24 @@
+feature Expressions {
+  get /precedence = a or b and not c == d + e * -f
+  get /grouping = (a or b) and not (c == d) and (e + f) * g
+  get /not-chain = not not a
+  get /arith = a - b - c / d % e + -1 - -2.5
+  get /compare = a <= b or c >= d or e < f or g > h or i != j or k contains l
+  get /lists = [[], [1], [1, 2], ["a", none, true, false], [x.y, f(z)]]
+  get /strings = ["", "plain", "Hello {name}!", "{a}{b}", "nested {f("in {x} side")} end", "esc \n \t \" \\ \{ }"]
+  get /calls = f(1, 2, "three").g().h(name: "x", other: y).i
+  get /members = book.delete().get.post.min.max.only.test.me.and
+  get /me = me.name
+  get /money = 9.99
+  get /queries = Book.all().order(-created_at).order(title).offset(10).limit(5).first()
+  get /count = Book.where(price > 10, not published or archived).count()
+  get /find = Post.find(slug: s)
+  get /builtins = str(len("abc")).lower().trim().starts_with("a")
+  get /multiline = Book.add(
+    title: "Dune",
+    pages: 412,
+  )
+  get /continued = 1 +
+    2 *
+    3
+}

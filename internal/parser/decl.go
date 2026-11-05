@@ -443,6 +443,9 @@ var crudAliases = map[string]string{
 	"new": "create", "add": "create", "edit": "update", "remove": "delete", "destroy": "delete",
 }
 
+// parseCrudOp parses one operation after only. An unknown name is
+// reported and kept, so that every unknown operation in the list is
+// reported; anything that is not a name ends the declaration.
 func (p *parser) parseCrudOp() *ast.Ident {
 	tok := p.tok
 	ok := tok.Kind == token.Get || tok.Kind == token.Delete || tok.Kind == token.Ident && slices.Contains(crudOps, tok.Text)
@@ -450,20 +453,23 @@ func (p *parser) parseCrudOp() *ast.Ident {
 		p.next()
 		return &ast.Ident{NamePos: tok.Pos, Name: tok.Text}
 	}
+	if tok.Kind != token.Ident && tok.Kind != token.TypeIdent {
+		p.errorExpected(crudOpList)
+		return nil
+	}
+	p.next()
 	start, end := span(tok)
 	d := p.diag(diag.V101, start, end, crudOpList, describe(tok))
-	if tok.Kind == token.Ident || tok.Kind == token.TypeIdent {
-		word := strings.ToLower(tok.Text)
-		op, ok := crudAliases[word]
-		if !ok {
-			op, ok = diag.Suggest(word, crudOps)
-		}
-		if ok {
-			d = d.WithFix("Use "+quote(op), diag.Replace(p.f, start, end, op))
-		}
+	word := strings.ToLower(tok.Text)
+	op, ok := crudAliases[word]
+	if !ok {
+		op, ok = diag.Suggest(word, crudOps)
 	}
-	p.fail(d)
-	return nil
+	if ok {
+		d = d.WithFix("Use "+quote(op), diag.Replace(p.f, start, end, op))
+	}
+	p.note(d)
+	return &ast.Ident{NamePos: tok.Pos, Name: tok.Text}
 }
 
 func (p *parser) parseRoute() ast.Item {

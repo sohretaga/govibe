@@ -37,6 +37,7 @@ func TestErrors(t *testing.T) {
 		{"func instead of fn", "func f() -> Int { return 1 }", `V101 1:1-1:5 ["fn"]`},
 		{"misspelled keyword", "modle Book {}", `V101 1:1-1:6 ["model"]`},
 		{"unknown crud op", "feature F {\n  crud A at /a only list, remove\n}", `V101 2:27-2:33 ["delete"]`},
+		{"every unknown crud op is reported", "feature F {\n  crud A at /a only read, list, remove\n}", "V101 2:21-2:25 [\"get\"]\nV101 2:33-2:39 [\"delete\"]"},
 		{"crud without at", "feature F {\n  crud A /a\n}", `V101 2:10-2:11 ["at "]`},
 		{"private without owner", "feature F {\n  crud A at /a private\n}", `V101 2:16-2:23 []`},
 		{"route without body", "feature F {\n  get /a\n}", `V101 2:9-2:9 []`},

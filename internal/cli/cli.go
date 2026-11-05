@@ -27,6 +27,7 @@ type result struct {
 	Diagnostics []diag.Diagnostic `json:"diagnostics"`
 	Files       []string          `json:"files,omitempty"`
 	Routes      []routeJSON       `json:"routes,omitempty"`
+	Output      string            `json:"output,omitempty"`
 	Error       string            `json:"error,omitempty"`
 }
 

@@ -48,6 +48,9 @@ const (
 	V504 Code = "V504"
 	V505 Code = "V505"
 	V506 Code = "V506"
+
+	V901 Code = "V901"
+	V902 Code = "V902"
 )
 
 // Info documents one diagnostic code for messages and "vibe explain".
@@ -455,6 +458,29 @@ ran outside the project root: run vibe commands from the folder that
 holds the project's .vibe files.`,
 		Before: "model Book {\n  title: Text\n}",
 		After:  "app Library {\n  db \"sqlite://library.db\"\n}\n\nmodel Book {\n  title: Text\n}",
+	},
+	{
+		Code:     V901,
+		Title:    "no Go toolchain found",
+		Template: "cannot build: %s",
+		Explanation: `vibe build turns the program into Go and compiles it with the go
+command, so it needs Go 1.26 or newer on the PATH. Install it from
+https://go.dev/dl and run vibe build again; vibe version shows the
+toolchain it found.`,
+		Before: "$ vibe build\nV901 cannot build: the go command was not found",
+		After:  "$ go version\ngo version go1.26.0 linux/amd64\n$ vibe build",
+	},
+	{
+		Code:     V902,
+		Title:    "go build failed",
+		Template: "go build failed: %s",
+		Explanation: `The Go code generated from the program did not compile. A program that
+vibe check accepts should always build, so this is a bug in vibe: please
+report it with the program and this message. The location points at the
+generated file in .vibe/build when it cannot be traced back to a .vibe
+line.`,
+		Before: "$ vibe build\n.vibe/build/handlers.go:12:3: V902 go build failed: ...",
+		After:  "$ vibe check\n$ vibe build",
 	},
 }
 

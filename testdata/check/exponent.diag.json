@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V106",
+      "severity": "error",
+      "message": "invalid number '1e3': exponents are not supported",
+      "file": "exponent.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 39
+        },
+        "end": {
+          "line": 2,
+          "col": 42
+        }
+      },
+      "snippet": "  get /books/big = Book.where(pages > 1e3)",
+      "fixes": [],
+      "help": "vibe explain V106"
+    }
+  ]
+}

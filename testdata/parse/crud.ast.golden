@@ -1,0 +1,40 @@
+File Name="crud.vibe"
+  Decls[0]: FeatureDecl
+    Name: Ident Name="Catalog"
+    Items[0]: CrudDecl
+      Model: Ident Name="Product"
+      Path: Path
+        Segments[0]: PathSegment Text="products"
+    Items[1]: CrudDecl
+      Model: Ident Name="Post"
+      Path: Path
+        Segments[0]: PathSegment Text="posts"
+        Segments[1]: PathSegment
+          X: Ident Name="slug"
+      Owner: Ident Name="author"
+    Items[2]: CrudDecl Private=true
+      Model: Ident Name="Order"
+      Path: Path
+        Segments[0]: PathSegment Text="orders"
+      Owner: Ident Name="buyer"
+    Items[3]: CrudDecl
+      Model: Ident Name="Book"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+      Only[0]: Ident Name="list"
+      Only[1]: Ident Name="get"
+    Items[4]: CrudDecl Private=true
+      Model: Ident Name="Review"
+      Path: Path
+        Segments[0]: PathSegment Text="reviews"
+      Owner: Ident Name="writer"
+      Only[0]: Ident Name="list"
+      Only[1]: Ident Name="create"
+      Only[2]: Ident Name="update"
+      Only[3]: Ident Name="delete"
+    Items[5]: CrudDecl
+      Model: Ident Name="Page"
+      Path: Path
+        Segments[0]: PathSegment Text="admin"
+        Segments[1]: PathSegment Text="pages"
+      Only[0]: Ident Name="get"

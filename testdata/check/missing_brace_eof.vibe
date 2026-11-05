@@ -1,0 +1,2 @@
+feature Books {
+  crud Book at /books

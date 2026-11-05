@@ -1,0 +1,142 @@
+File Name="tests.vibe"
+  Decls[0]: FeatureDecl
+    Name: Ident Name="Tests"
+    Items[0]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="requests"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="u"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="User"
+              Sel: Ident Name="add"
+            Args[0]: Arg
+              Name: Ident Name="name"
+              Value: StringLit
+                Parts[0]: StringPart Text="Ursula"
+            Args[1]: Arg
+              Name: Ident Name="email"
+              Value: StringLit
+                Parts[0]: StringPart Text="ursula@example.com"
+        Stmts[1]: ExprStmt
+          X: CallExpr
+            Fun: Ident Name="login_as"
+            Args[0]: Arg
+              Value: Ident Name="u"
+        Stmts[2]: LetStmt
+          Name: Ident Name="res"
+          Value: HTTPExpr Method="post"
+            Path: Path
+              Segments[0]: PathSegment Text="books"
+            Args[0]: Arg
+              Name: Ident Name="title"
+              Value: StringLit
+                Parts[0]: StringPart Text="Dune"
+            Args[1]: Arg
+              Name: Ident Name="pages"
+              Value: BasicLit Kind="INT" Value="412"
+            Args[2]: Arg
+              Name: Ident Name="price"
+              Value: BasicLit Kind="FLOAT" Value="9.99"
+        Stmts[3]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: Ident Name="res"
+              Sel: Ident Name="status"
+            Y: Ident Name="created"
+        Stmts[4]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: SelectorExpr
+                X: Ident Name="res"
+                Sel: Ident Name="body"
+              Sel: Ident Name="published"
+            Y: BasicLit Kind="false" Value="false"
+        Stmts[5]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="get"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+              Sel: Ident Name="status"
+            Y: Ident Name="ok"
+        Stmts[6]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: SelectorExpr
+                X: ParenExpr
+                  X: HTTPExpr Method="get"
+                    Path: Path
+                      Segments[0]: PathSegment Text="books"
+                      Segments[1]: PathSegment Text="search"
+                    Args[0]: Arg
+                      Name: Ident Name="q"
+                      Value: StringLit
+                        Parts[0]: StringPart Text="Dune"
+                    Args[1]: Arg
+                      Name: Ident Name="limit"
+                      Value: BasicLit Kind="INT" Value="5"
+                Sel: Ident Name="body"
+              Sel: Ident Name="count"
+            Y: BasicLit Kind="INT" Value="1"
+        Stmts[7]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="patch"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                    Segments[1]: PathSegment
+                      X: SelectorExpr
+                        X: SelectorExpr
+                          X: Ident Name="res"
+                          Sel: Ident Name="body"
+                        Sel: Ident Name="id"
+                  Args[0]: Arg
+                    Name: Ident Name="title"
+                    Value: StringLit
+                      Parts[0]: StringPart Text="Dune Messiah"
+              Sel: Ident Name="status"
+            Y: Ident Name="ok"
+        Stmts[8]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="delete"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                    Segments[1]: PathSegment
+                      X: SelectorExpr
+                        X: SelectorExpr
+                          X: Ident Name="res"
+                          Sel: Ident Name="body"
+                        Sel: Ident Name="id"
+              Sel: Ident Name="status"
+            Y: Ident Name="empty"
+        Stmts[9]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="post"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                    Segments[1]: PathSegment
+                      X: SelectorExpr
+                        X: Ident Name="u"
+                        Sel: Ident Name="id"
+                    Segments[2]: PathSegment
+                      X: StringLit
+                        Parts[0]: StringPart Text="x"
+                    Segments[3]: PathSegment Text="publish"
+              Sel: Ident Name="status"
+            Y: Ident Name="not_found"
+        Stmts[10]: ExprStmt
+          X: HTTPExpr Method="get"
+            Path: Path
+              Segments[0]: PathSegment Text="healthz"
+    Items[1]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="empty"
+      Body: Block

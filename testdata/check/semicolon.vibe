@@ -1,0 +1,4 @@
+fn double(x: Int) -> Int {
+  let y = x * 2;
+  return y
+}

@@ -1,0 +1,9 @@
+model Book {
+  title Text
+  pages: Int min 1_
+}
+
+feature Books {
+  get /books = Book.where(a && b)
+  put /books/{id} = 1
+}

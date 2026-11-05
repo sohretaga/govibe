@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V104",
+      "severity": "error",
+      "message": "invalid character ';': statements end at a newline",
+      "file": "semicolon.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 16
+        },
+        "end": {
+          "line": 2,
+          "col": 17
+        }
+      },
+      "snippet": "  let y = x * 2;",
+      "fixes": [
+        {
+          "title": "Remove ';'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 16
+                },
+                "end": {
+                  "line": 2,
+                  "col": 17
+                }
+              },
+              "new_text": ""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V104"
+    }
+  ]
+}

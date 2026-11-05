@@ -1,0 +1,50 @@
+app Library {
+  db "sqlite://library.db"
+}
+
+auth User
+
+model User {
+  name: Text min 2 max 120
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  published: Bool = false
+}
+
+feature Books {
+  crud Book at /books owner seller
+
+  get /books/search (q: Text?, limit = 20) = Book.where(title contains q, published).newest().limit(limit)
+
+  post /books/{id}/publish {
+    let book = Book.find(id)
+    if book.seller != me.id { fail forbidden "not your book" }
+    if book.published { fail conflict "already published" }
+    return book.update(published: true)
+  }
+
+  test "new books start unpublished" {
+    login_as(User.add(name: "Frank", email: "frank@example.com"))
+    let res = post /books (title: "Dune", pages: 412, price: 9.99)
+    expect res.status == created
+    expect res.body.published == false
+  }
+
+  test "guests cannot create books" {
+    expect (post /books (title: "Dune", pages: 412, price: 9.99)).status == login_required
+  }
+
+  test "publishing twice fails" {
+    let u = User.add(name: "Ursula", email: "ursula@example.com")
+    let b = Book.add(title: "Earthsea", seller: u.id, pages: 183, price: 7.50)
+    login_as(u)
+    expect (post /books/{b.id}/publish).status == ok
+    expect (post /books/{b.id}/publish).status == conflict
+  }
+}

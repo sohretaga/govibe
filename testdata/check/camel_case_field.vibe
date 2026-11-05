@@ -1,0 +1,4 @@
+model Book {
+  createdBy: Ref User
+  pageCount: Int
+}

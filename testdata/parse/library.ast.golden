@@ -1,0 +1,280 @@
+File Name="main.vibe"
+  Decls[0]: AppDecl
+    Name: Ident Name="Library"
+    DB: DBSetting
+      URL: StringLit
+        Parts[0]: StringPart Text="sqlite://library.db"
+  Decls[1]: AuthDecl
+    Model: Ident Name="User"
+  Decls[2]: ModelDecl
+    Name: Ident Name="User"
+    Fields[0]: Field
+      Name: Ident Name="name"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="2"
+      Mods[1]: FieldMod Kind="max"
+        Value: BasicLit Kind="INT" Value="120"
+    Fields[1]: Field
+      Name: Ident Name="email"
+      Type: NamedType
+        Name: Ident Name="Email"
+      Mods[0]: FieldMod Kind="unique"
+  Decls[3]: ModelDecl
+    Name: Ident Name="Book"
+    Fields[0]: Field
+      Name: Ident Name="title"
+      Type: NamedType
+        Name: Ident Name="Text"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="2"
+      Mods[1]: FieldMod Kind="max"
+        Value: BasicLit Kind="INT" Value="200"
+    Fields[1]: Field
+      Name: Ident Name="seller"
+      Type: RefType
+        Model: Ident Name="User"
+    Fields[2]: Field
+      Name: Ident Name="pages"
+      Type: NamedType
+        Name: Ident Name="Int"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="1"
+    Fields[3]: Field
+      Name: Ident Name="price"
+      Type: NamedType
+        Name: Ident Name="Money"
+      Mods[0]: FieldMod Kind="min"
+        Value: BasicLit Kind="INT" Value="0"
+    Fields[4]: Field
+      Name: Ident Name="published"
+      Type: NamedType
+        Name: Ident Name="Bool"
+      Default: BasicLit Kind="false" Value="false"
+  Decls[4]: FeatureDecl
+    Name: Ident Name="Books"
+    Items[0]: CrudDecl
+      Model: Ident Name="Book"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+      Owner: Ident Name="seller"
+    Items[1]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+        Segments[1]: PathSegment Text="search"
+      Params[0]: Param
+        Name: Ident Name="q"
+        Type: OptionalType
+          Elem: NamedType
+            Name: Ident Name="Text"
+      Params[1]: Param
+        Name: Ident Name="limit"
+        Default: BasicLit Kind="INT" Value="20"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: CallExpr
+            Fun: SelectorExpr
+              X: CallExpr
+                Fun: SelectorExpr
+                  X: Ident Name="Book"
+                  Sel: Ident Name="where"
+                Args[0]: Arg
+                  Value: BinaryExpr Op="contains"
+                    X: Ident Name="title"
+                    Y: Ident Name="q"
+                Args[1]: Arg
+                  Value: Ident Name="published"
+              Sel: Ident Name="newest"
+          Sel: Ident Name="limit"
+        Args[0]: Arg
+          Value: Ident Name="limit"
+    Items[2]: RouteDecl Method="post"
+      Path: Path
+        Segments[0]: PathSegment Text="books"
+        Segments[1]: PathSegment
+          X: Ident Name="id"
+        Segments[2]: PathSegment Text="publish"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="book"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Book"
+              Sel: Ident Name="find"
+            Args[0]: Arg
+              Value: Ident Name="id"
+        Stmts[1]: IfStmt
+          Cond: BinaryExpr Op="!="
+            X: SelectorExpr
+              X: Ident Name="book"
+              Sel: Ident Name="seller"
+            Y: SelectorExpr
+              X: MeExpr
+              Sel: Ident Name="id"
+          Then: Block
+            Stmts[0]: FailStmt
+              Status: Ident Name="forbidden"
+              Message: StringLit
+                Parts[0]: StringPart Text="not your book"
+        Stmts[2]: IfStmt
+          Cond: SelectorExpr
+            X: Ident Name="book"
+            Sel: Ident Name="published"
+          Then: Block
+            Stmts[0]: FailStmt
+              Status: Ident Name="conflict"
+              Message: StringLit
+                Parts[0]: StringPart Text="already published"
+        Stmts[3]: ReturnStmt
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="book"
+              Sel: Ident Name="update"
+            Args[0]: Arg
+              Name: Ident Name="published"
+              Value: BasicLit Kind="true" Value="true"
+    Items[3]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="new books start unpublished"
+      Body: Block
+        Stmts[0]: ExprStmt
+          X: CallExpr
+            Fun: Ident Name="login_as"
+            Args[0]: Arg
+              Value: CallExpr
+                Fun: SelectorExpr
+                  X: Ident Name="User"
+                  Sel: Ident Name="add"
+                Args[0]: Arg
+                  Name: Ident Name="name"
+                  Value: StringLit
+                    Parts[0]: StringPart Text="Frank"
+                Args[1]: Arg
+                  Name: Ident Name="email"
+                  Value: StringLit
+                    Parts[0]: StringPart Text="frank@example.com"
+        Stmts[1]: LetStmt
+          Name: Ident Name="res"
+          Value: HTTPExpr Method="post"
+            Path: Path
+              Segments[0]: PathSegment Text="books"
+            Args[0]: Arg
+              Name: Ident Name="title"
+              Value: StringLit
+                Parts[0]: StringPart Text="Dune"
+            Args[1]: Arg
+              Name: Ident Name="pages"
+              Value: BasicLit Kind="INT" Value="412"
+            Args[2]: Arg
+              Name: Ident Name="price"
+              Value: BasicLit Kind="FLOAT" Value="9.99"
+        Stmts[2]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: Ident Name="res"
+              Sel: Ident Name="status"
+            Y: Ident Name="created"
+        Stmts[3]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: SelectorExpr
+                X: Ident Name="res"
+                Sel: Ident Name="body"
+              Sel: Ident Name="published"
+            Y: BasicLit Kind="false" Value="false"
+    Items[4]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="guests cannot create books"
+      Body: Block
+        Stmts[0]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="post"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                  Args[0]: Arg
+                    Name: Ident Name="title"
+                    Value: StringLit
+                      Parts[0]: StringPart Text="Dune"
+                  Args[1]: Arg
+                    Name: Ident Name="pages"
+                    Value: BasicLit Kind="INT" Value="412"
+                  Args[2]: Arg
+                    Name: Ident Name="price"
+                    Value: BasicLit Kind="FLOAT" Value="9.99"
+              Sel: Ident Name="status"
+            Y: Ident Name="login_required"
+    Items[5]: TestDecl
+      Name: StringLit
+        Parts[0]: StringPart Text="publishing twice fails"
+      Body: Block
+        Stmts[0]: LetStmt
+          Name: Ident Name="u"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="User"
+              Sel: Ident Name="add"
+            Args[0]: Arg
+              Name: Ident Name="name"
+              Value: StringLit
+                Parts[0]: StringPart Text="Ursula"
+            Args[1]: Arg
+              Name: Ident Name="email"
+              Value: StringLit
+                Parts[0]: StringPart Text="ursula@example.com"
+        Stmts[1]: LetStmt
+          Name: Ident Name="b"
+          Value: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Book"
+              Sel: Ident Name="add"
+            Args[0]: Arg
+              Name: Ident Name="title"
+              Value: StringLit
+                Parts[0]: StringPart Text="Earthsea"
+            Args[1]: Arg
+              Name: Ident Name="seller"
+              Value: SelectorExpr
+                X: Ident Name="u"
+                Sel: Ident Name="id"
+            Args[2]: Arg
+              Name: Ident Name="pages"
+              Value: BasicLit Kind="INT" Value="183"
+            Args[3]: Arg
+              Name: Ident Name="price"
+              Value: BasicLit Kind="FLOAT" Value="7.50"
+        Stmts[2]: ExprStmt
+          X: CallExpr
+            Fun: Ident Name="login_as"
+            Args[0]: Arg
+              Value: Ident Name="u"
+        Stmts[3]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="post"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                    Segments[1]: PathSegment
+                      X: SelectorExpr
+                        X: Ident Name="b"
+                        Sel: Ident Name="id"
+                    Segments[2]: PathSegment Text="publish"
+              Sel: Ident Name="status"
+            Y: Ident Name="ok"
+        Stmts[4]: ExpectStmt
+          Cond: BinaryExpr Op="=="
+            X: SelectorExpr
+              X: ParenExpr
+                X: HTTPExpr Method="post"
+                  Path: Path
+                    Segments[0]: PathSegment Text="books"
+                    Segments[1]: PathSegment
+                      X: SelectorExpr
+                        X: Ident Name="b"
+                        Sel: Ident Name="id"
+                    Segments[2]: PathSegment Text="publish"
+              Sel: Ident Name="status"
+            Y: Ident Name="conflict"

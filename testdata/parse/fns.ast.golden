@@ -1,0 +1,89 @@
+File Name="fns.vibe"
+  Decls[0]: ExternDecl
+    Name: Ident Name="charge_card"
+    Params[0]: Param
+      Name: Ident Name="amount"
+      Type: NamedType
+        Name: Ident Name="Money"
+    Params[1]: Param
+      Name: Ident Name="token"
+      Type: NamedType
+        Name: Ident Name="Text"
+    Result: NamedType
+      Name: Ident Name="Text"
+  Decls[1]: ExternDecl
+    Name: Ident Name="send_sms"
+    Params[0]: Param
+      Name: Ident Name="to"
+      Type: NamedType
+        Name: Ident Name="Text"
+    Params[1]: Param
+      Name: Ident Name="body"
+      Type: NamedType
+        Name: Ident Name="Text"
+    Result: NamedType
+      Name: Ident Name="Bool"
+  Decls[2]: ExternDecl
+    Name: Ident Name="nothing"
+    Result: OptionalType
+      Elem: ListType
+        Elem: NamedType
+          Name: Ident Name="Text"
+  Decls[3]: FnDecl
+    Name: Ident Name="double"
+    Params[0]: Param
+      Name: Ident Name="x"
+      Type: NamedType
+        Name: Ident Name="Int"
+    Result: NamedType
+      Name: Ident Name="Int"
+    Body: Block
+      Stmts[0]: ReturnStmt
+        Value: BinaryExpr Op="*"
+          X: Ident Name="x"
+          Y: BasicLit Kind="INT" Value="2"
+  Decls[4]: FnDecl
+    Name: Ident Name="greet"
+    Params[0]: Param
+      Name: Ident Name="name"
+      Type: NamedType
+        Name: Ident Name="Text"
+    Params[1]: Param
+      Name: Ident Name="loud"
+      Type: NamedType
+        Name: Ident Name="Bool"
+      Default: BasicLit Kind="false" Value="false"
+    Result: NamedType
+      Name: Ident Name="Text"
+    Body: Block
+      Stmts[0]: IfStmt
+        Cond: Ident Name="loud"
+        Then: Block
+          Stmts[0]: ReturnStmt
+            Value: StringLit
+              Parts[0]: StringPart Text="HELLO "
+              Parts[1]: StringPart
+                X: CallExpr
+                  Fun: SelectorExpr
+                    X: Ident Name="name"
+                    Sel: Ident Name="upper"
+      Stmts[1]: ReturnStmt
+        Value: StringLit
+          Parts[0]: StringPart Text="hello "
+          Parts[1]: StringPart
+            X: Ident Name="name"
+  Decls[5]: FeatureDecl
+    Name: Ident Name="Helpers"
+    Items[0]: FnDecl
+      Name: Ident Name="local"
+      Params[0]: Param
+        Name: Ident Name="xs"
+        Type: ListType
+          Elem: NamedType
+            Name: Ident Name="Int"
+      Result: OptionalType
+        Elem: NamedType
+          Name: Ident Name="Int"
+      Body: Block
+        Stmts[0]: ReturnStmt
+          Value: BasicLit Kind="none" Value="none"

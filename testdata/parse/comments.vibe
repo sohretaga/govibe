@@ -1,0 +1,44 @@
+# Header comment.
+#
+# With a blank comment line.
+
+# Before the app.
+app Notes { # after the brace
+  db "sqlite://notes.db" # the database
+} # after the app
+
+auth User # trailing
+
+model User {
+  # inside, before a field
+  name: Text min 2 # trailing field comment
+
+  # after a blank line
+  email: Email unique
+  # before the closing brace
+}
+
+feature Notes {
+  # first item comment
+  crud Note at /notes # crud comment
+
+  post /notes/{id}/pin {
+    # leading statement comment
+    let note = Note.find(id) # trailing
+    if note.pinned { fail conflict "pinned" } # one-line if
+
+    return note.update(pinned: true)
+    # end of block
+  }
+
+  test "comment inside args" {
+    let n = Note.add(
+      # hoisted
+      text: "x", # also hoisted
+      pinned: false,
+    )
+    expect n.pinned == false
+  }
+}
+
+# Final comment.

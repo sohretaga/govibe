@@ -1,0 +1,99 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected field type (Int, Float, Text, Bool, Time, Money, Email, ID, Slug(field) or Ref Model), found type name 'User'",
+      "file": "model_without_ref.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 11
+        },
+        "end": {
+          "line": 2,
+          "col": 15
+        }
+      },
+      "snippet": "  seller: User",
+      "fixes": [
+        {
+          "title": "Use 'Ref User'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 11
+                },
+                "end": {
+                  "line": 2,
+                  "col": 11
+                }
+              },
+              "new_text": "Ref "
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    },
+    {
+      "code": "V101",
+      "severity": "error",
+      "message": "expected field type (Int, Float, Text, Bool, Time, Money, Email, ID, Slug(field) or Ref Model), found type name 'Txt'",
+      "file": "model_without_ref.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 10
+        },
+        "end": {
+          "line": 3,
+          "col": 13
+        }
+      },
+      "snippet": "  title: Txt",
+      "fixes": [
+        {
+          "title": "Use 'Text'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 10
+                },
+                "end": {
+                  "line": 3,
+                  "col": 13
+                }
+              },
+              "new_text": "Text"
+            }
+          ]
+        },
+        {
+          "title": "Use 'Ref Txt'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 3,
+                  "col": 10
+                },
+                "end": {
+                  "line": 3,
+                  "col": 10
+                }
+              },
+              "new_text": "Ref "
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V101"
+    }
+  ]
+}

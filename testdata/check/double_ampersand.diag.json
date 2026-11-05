@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V104",
+      "severity": "error",
+      "message": "invalid character '&&': use 'and'",
+      "file": "double_ampersand.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 44
+        },
+        "end": {
+          "line": 2,
+          "col": 46
+        }
+      },
+      "snippet": "  get /books/cheap = Book.where(price < 10 && published)",
+      "fixes": [
+        {
+          "title": "Use 'and'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 44
+                },
+                "end": {
+                  "line": 2,
+                  "col": 46
+                }
+              },
+              "new_text": "and"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V104"
+    }
+  ]
+}

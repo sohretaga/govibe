@@ -1,0 +1,309 @@
+File Name="expressions.vibe"
+  Decls[0]: FeatureDecl
+    Name: Ident Name="Expressions"
+    Items[0]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="precedence"
+      Value: BinaryExpr Op="or"
+        X: Ident Name="a"
+        Y: BinaryExpr Op="and"
+          X: Ident Name="b"
+          Y: UnaryExpr Op="not"
+            X: BinaryExpr Op="=="
+              X: Ident Name="c"
+              Y: BinaryExpr Op="+"
+                X: Ident Name="d"
+                Y: BinaryExpr Op="*"
+                  X: Ident Name="e"
+                  Y: UnaryExpr Op="-"
+                    X: Ident Name="f"
+    Items[1]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="grouping"
+      Value: BinaryExpr Op="and"
+        X: BinaryExpr Op="and"
+          X: ParenExpr
+            X: BinaryExpr Op="or"
+              X: Ident Name="a"
+              Y: Ident Name="b"
+          Y: UnaryExpr Op="not"
+            X: ParenExpr
+              X: BinaryExpr Op="=="
+                X: Ident Name="c"
+                Y: Ident Name="d"
+        Y: BinaryExpr Op="*"
+          X: ParenExpr
+            X: BinaryExpr Op="+"
+              X: Ident Name="e"
+              Y: Ident Name="f"
+          Y: Ident Name="g"
+    Items[2]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="not-chain"
+      Value: UnaryExpr Op="not"
+        X: UnaryExpr Op="not"
+          X: Ident Name="a"
+    Items[3]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="arith"
+      Value: BinaryExpr Op="-"
+        X: BinaryExpr Op="+"
+          X: BinaryExpr Op="-"
+            X: BinaryExpr Op="-"
+              X: Ident Name="a"
+              Y: Ident Name="b"
+            Y: BinaryExpr Op="%"
+              X: BinaryExpr Op="/"
+                X: Ident Name="c"
+                Y: Ident Name="d"
+              Y: Ident Name="e"
+          Y: UnaryExpr Op="-"
+            X: BasicLit Kind="INT" Value="1"
+        Y: UnaryExpr Op="-"
+          X: BasicLit Kind="FLOAT" Value="2.5"
+    Items[4]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="compare"
+      Value: BinaryExpr Op="or"
+        X: BinaryExpr Op="or"
+          X: BinaryExpr Op="or"
+            X: BinaryExpr Op="or"
+              X: BinaryExpr Op="or"
+                X: BinaryExpr Op="<="
+                  X: Ident Name="a"
+                  Y: Ident Name="b"
+                Y: BinaryExpr Op=">="
+                  X: Ident Name="c"
+                  Y: Ident Name="d"
+              Y: BinaryExpr Op="<"
+                X: Ident Name="e"
+                Y: Ident Name="f"
+            Y: BinaryExpr Op=">"
+              X: Ident Name="g"
+              Y: Ident Name="h"
+          Y: BinaryExpr Op="!="
+            X: Ident Name="i"
+            Y: Ident Name="j"
+        Y: BinaryExpr Op="contains"
+          X: Ident Name="k"
+          Y: Ident Name="l"
+    Items[5]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="lists"
+      Value: ListLit
+        Elems[0]: ListLit
+        Elems[1]: ListLit
+          Elems[0]: BasicLit Kind="INT" Value="1"
+        Elems[2]: ListLit
+          Elems[0]: BasicLit Kind="INT" Value="1"
+          Elems[1]: BasicLit Kind="INT" Value="2"
+        Elems[3]: ListLit
+          Elems[0]: StringLit
+            Parts[0]: StringPart Text="a"
+          Elems[1]: BasicLit Kind="none" Value="none"
+          Elems[2]: BasicLit Kind="true" Value="true"
+          Elems[3]: BasicLit Kind="false" Value="false"
+        Elems[4]: ListLit
+          Elems[0]: SelectorExpr
+            X: Ident Name="x"
+            Sel: Ident Name="y"
+          Elems[1]: CallExpr
+            Fun: Ident Name="f"
+            Args[0]: Arg
+              Value: Ident Name="z"
+    Items[6]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="strings"
+      Value: ListLit
+        Elems[0]: StringLit
+        Elems[1]: StringLit
+          Parts[0]: StringPart Text="plain"
+        Elems[2]: StringLit
+          Parts[0]: StringPart Text="Hello "
+          Parts[1]: StringPart
+            X: Ident Name="name"
+          Parts[2]: StringPart Text="!"
+        Elems[3]: StringLit
+          Parts[0]: StringPart
+            X: Ident Name="a"
+          Parts[1]: StringPart
+            X: Ident Name="b"
+        Elems[4]: StringLit
+          Parts[0]: StringPart Text="nested "
+          Parts[1]: StringPart
+            X: CallExpr
+              Fun: Ident Name="f"
+              Args[0]: Arg
+                Value: StringLit
+                  Parts[0]: StringPart Text="in "
+                  Parts[1]: StringPart
+                    X: Ident Name="x"
+                  Parts[2]: StringPart Text=" side"
+          Parts[2]: StringPart Text=" end"
+        Elems[5]: StringLit
+          Parts[0]: StringPart Text="esc \n \t \" \\ { }"
+    Items[7]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="calls"
+      Value: SelectorExpr
+        X: CallExpr
+          Fun: SelectorExpr
+            X: CallExpr
+              Fun: SelectorExpr
+                X: CallExpr
+                  Fun: Ident Name="f"
+                  Args[0]: Arg
+                    Value: BasicLit Kind="INT" Value="1"
+                  Args[1]: Arg
+                    Value: BasicLit Kind="INT" Value="2"
+                  Args[2]: Arg
+                    Value: StringLit
+                      Parts[0]: StringPart Text="three"
+                Sel: Ident Name="g"
+            Sel: Ident Name="h"
+          Args[0]: Arg
+            Name: Ident Name="name"
+            Value: StringLit
+              Parts[0]: StringPart Text="x"
+          Args[1]: Arg
+            Name: Ident Name="other"
+            Value: Ident Name="y"
+        Sel: Ident Name="i"
+    Items[8]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="members"
+      Value: SelectorExpr
+        X: SelectorExpr
+          X: SelectorExpr
+            X: SelectorExpr
+              X: SelectorExpr
+                X: SelectorExpr
+                  X: SelectorExpr
+                    X: SelectorExpr
+                      X: CallExpr
+                        Fun: SelectorExpr
+                          X: Ident Name="book"
+                          Sel: Ident Name="delete"
+                      Sel: Ident Name="get"
+                    Sel: Ident Name="post"
+                  Sel: Ident Name="min"
+                Sel: Ident Name="max"
+              Sel: Ident Name="only"
+            Sel: Ident Name="test"
+          Sel: Ident Name="me"
+        Sel: Ident Name="and"
+    Items[9]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="me"
+      Value: SelectorExpr
+        X: MeExpr
+        Sel: Ident Name="name"
+    Items[10]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="money"
+      Value: BasicLit Kind="FLOAT" Value="9.99"
+    Items[11]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="queries"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: CallExpr
+            Fun: SelectorExpr
+              X: CallExpr
+                Fun: SelectorExpr
+                  X: CallExpr
+                    Fun: SelectorExpr
+                      X: CallExpr
+                        Fun: SelectorExpr
+                          X: CallExpr
+                            Fun: SelectorExpr
+                              X: Ident Name="Book"
+                              Sel: Ident Name="all"
+                          Sel: Ident Name="order"
+                        Args[0]: Arg
+                          Value: UnaryExpr Op="-"
+                            X: Ident Name="created_at"
+                      Sel: Ident Name="order"
+                    Args[0]: Arg
+                      Value: Ident Name="title"
+                  Sel: Ident Name="offset"
+                Args[0]: Arg
+                  Value: BasicLit Kind="INT" Value="10"
+              Sel: Ident Name="limit"
+            Args[0]: Arg
+              Value: BasicLit Kind="INT" Value="5"
+          Sel: Ident Name="first"
+    Items[12]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="count"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: CallExpr
+            Fun: SelectorExpr
+              X: Ident Name="Book"
+              Sel: Ident Name="where"
+            Args[0]: Arg
+              Value: BinaryExpr Op=">"
+                X: Ident Name="price"
+                Y: BasicLit Kind="INT" Value="10"
+            Args[1]: Arg
+              Value: BinaryExpr Op="or"
+                X: UnaryExpr Op="not"
+                  X: Ident Name="published"
+                Y: Ident Name="archived"
+          Sel: Ident Name="count"
+    Items[13]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="find"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: Ident Name="Post"
+          Sel: Ident Name="find"
+        Args[0]: Arg
+          Name: Ident Name="slug"
+          Value: Ident Name="s"
+    Items[14]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="builtins"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: CallExpr
+            Fun: SelectorExpr
+              X: CallExpr
+                Fun: SelectorExpr
+                  X: CallExpr
+                    Fun: Ident Name="str"
+                    Args[0]: Arg
+                      Value: CallExpr
+                        Fun: Ident Name="len"
+                        Args[0]: Arg
+                          Value: StringLit
+                            Parts[0]: StringPart Text="abc"
+                  Sel: Ident Name="lower"
+              Sel: Ident Name="trim"
+          Sel: Ident Name="starts_with"
+        Args[0]: Arg
+          Value: StringLit
+            Parts[0]: StringPart Text="a"
+    Items[15]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="multiline"
+      Value: CallExpr
+        Fun: SelectorExpr
+          X: Ident Name="Book"
+          Sel: Ident Name="add"
+        Args[0]: Arg
+          Name: Ident Name="title"
+          Value: StringLit
+            Parts[0]: StringPart Text="Dune"
+        Args[1]: Arg
+          Name: Ident Name="pages"
+          Value: BasicLit Kind="INT" Value="412"
+    Items[16]: RouteDecl Method="get"
+      Path: Path
+        Segments[0]: PathSegment Text="continued"
+      Value: BinaryExpr Op="+"
+        X: BasicLit Kind="INT" Value="1"
+        Y: BinaryExpr Op="*"
+          X: BasicLit Kind="INT" Value="2"
+          Y: BasicLit Kind="INT" Value="3"

@@ -1,0 +1,13 @@
+feature Catalog {
+  crud Product at /products
+
+  crud Post at /posts/{slug} owner author
+
+  crud Order at /orders owner buyer private
+
+  crud Book at /books only list, get
+
+  crud Review at /reviews owner writer private only list, create, update, delete
+
+  crud Page at /admin/pages only get
+}

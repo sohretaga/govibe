@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V109",
+      "severity": "error",
+      "message": "invalid path '/books?limit=5': a path has no query string; declare query values as route parameters",
+      "file": "query_in_path.vibe",
+      "range": {
+        "start": {
+          "line": 2,
+          "col": 7
+        },
+        "end": {
+          "line": 2,
+          "col": 21
+        }
+      },
+      "snippet": "  get /books?limit=5 = Book.all()",
+      "fixes": [
+        {
+          "title": "Remove the query string",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 2,
+                  "col": 13
+                },
+                "end": {
+                  "line": 2,
+                  "col": 21
+                }
+              },
+              "new_text": ""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V109"
+    }
+  ]
+}

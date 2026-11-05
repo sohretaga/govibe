@@ -1,0 +1,6 @@
+model Book {
+  title: Text
+
+model User {
+  email: Email unique
+}

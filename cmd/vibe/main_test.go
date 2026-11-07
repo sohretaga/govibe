@@ -24,6 +24,9 @@ func TestRun(t *testing.T) {
 		{[]string{"check", "--yaml"}, 2, "flag provided but not defined"},
 		{[]string{"check", "main.vibe"}, 2, "unexpected argument"},
 		{[]string{"fmt", "x"}, 2, "unexpected argument"},
+		{[]string{"help"}, 0, "vibe test"},
+		{[]string{"test", "-run"}, 2, "flag needs an argument"},
+		{[]string{"test", "x"}, 2, "unexpected argument"},
 	}
 	for _, tt := range tests {
 		var out bytes.Buffer

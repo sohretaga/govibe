@@ -1,0 +1,96 @@
+app Shelf {
+  db "sqlite://shelf.db"
+}
+
+auth User
+
+model User {
+  name: Text min 2 max 120
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  slug: Slug(title)
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  published: Bool = false
+}
+
+fn per_page(pages: Int, parts: Int) -> Int {
+  return pages / parts
+}
+
+feature Books {
+  crud Book at /books owner seller
+
+  get /books/search (q: Text?, limit = 20) = Book.where(title contains q, published).newest().limit(limit)
+
+  get /books/{id}/split (parts: Int) = per_page(Book.find(id).pages, parts)
+
+  test "a passing test reads JSON" {
+    let reg = post /auth/register (name: "Ann", email: "ann@example.com", password: "long enough")
+    expect reg.status == created
+    login_as(reg.body.user)
+    let res = post /books (title: "Dune Messiah", pages: 412, price: 9.99)
+    expect res.status == created
+    expect res.body.price == 9.99
+    expect res.body.price == "9.99"
+    expect res.body.pages > 400 and res.body.title contains "messiah"
+    expect not res.body.published
+    expect len(res.body.title) == 12
+    let b = Book.find(slug: res.body.slug)
+    expect b.seller == res.body.seller
+    let got = get /books/{res.body.id}
+    expect got.body == res.body
+    expect (get /books/search (q: "dune")).body == []
+    expect "{got.body.title}" == "Dune Messiah"
+    expect (get /books/{b.id}/split (parts: 4)).body == 103
+  }
+
+  test "a broken expectation" {
+    expect (get /books).status == not_found
+  }
+
+  test "a misspelled field" {
+    let res = get /healthz
+    expect res.body.okk == true
+  }
+
+  test "seed data that breaks a rule" {
+    let u = User.add(name: "A", email: "a@example.com")
+    expect u.name == "A"
+  }
+
+  test "a record that is missing" {
+    let u = User.add(name: "Bo", email: "bo@example.com")
+    let b = Book.add(title: "Kindred", seller: u.id, pages: 264, price: 12)
+    b.delete()
+    expect Book.find(b.id).title == "Kindred"
+  }
+
+  test "a route that panics" {
+    let u = User.add(name: "Cy", email: "cy@example.com")
+    let b = Book.add(title: "Beloved", seller: u.id, pages: 324, price: 15)
+    expect (get /books/{b.id}/split (parts: 0)).status == ok
+  }
+
+  test "a test that panics" {
+    expect per_page(10, len("")) == 1
+  }
+
+  test "fail stops a test" {
+    if (get /healthz).status == ok {
+      fail "stopped on purpose"
+    }
+  }
+
+  test "a condition that is false" {
+    expect (get /healthz).body.ok and false
+  }
+
+  test "a JSON value of the wrong type" {
+    expect (get /healthz).body.ok > 3
+  }
+}

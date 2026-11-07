@@ -1,0 +1,103 @@
+[
+  {
+    "name": "a passing test reads JSON",
+    "passed": true,
+    "duration_ms": 0
+  },
+  {
+    "name": "a broken expectation",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 53,
+      "message": "expect (get /books).status == not_found",
+      "left": "ok",
+      "right": "not_found"
+    }
+  },
+  {
+    "name": "a misspelled field",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 58,
+      "message": "body has no field okk (did you mean ok?); it has ok"
+    }
+  },
+  {
+    "name": "seed data that breaks a rule",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 62,
+      "message": "invalid: Invalid input (name must be at least 2 characters)"
+    }
+  },
+  {
+    "name": "a record that is missing",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 70,
+      "message": "not_found: Book not found"
+    }
+  },
+  {
+    "name": "a route that panics",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 76,
+      "message": "expect (get /books/{b.id}/split (parts: 0)).status == ok (the app answered internal at main.vibe:22: panic: runtime error: integer divide by zero)",
+      "left": "internal",
+      "right": "ok"
+    }
+  },
+  {
+    "name": "a test that panics",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 22,
+      "message": "panic: runtime error: integer divide by zero"
+    }
+  },
+  {
+    "name": "fail stops a test",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 85,
+      "message": "stopped on purpose"
+    }
+  },
+  {
+    "name": "a condition that is false",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 90,
+      "message": "expect (get /healthz).body.ok and false",
+      "left": "false",
+      "right": "true"
+    }
+  },
+  {
+    "name": "a JSON value of the wrong type",
+    "passed": false,
+    "duration_ms": 0,
+    "failure": {
+      "file": "main.vibe",
+      "line": 94,
+      "message": "cannot compare true and 3 with \u003e"
+    }
+  }
+]

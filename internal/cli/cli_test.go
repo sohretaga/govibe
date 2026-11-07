@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"slices"
 	"strings"
@@ -17,6 +18,8 @@ import (
 
 	"github.com/sohretaga/govibe/internal/diag"
 	"github.com/sohretaga/govibe/internal/golden"
+	"github.com/sohretaga/govibe/internal/testrun"
+	vibe "github.com/sohretaga/govibe/runtime"
 )
 
 // checkCases returns the cases in testdata/check: a .vibe file is a
@@ -421,5 +424,75 @@ func TestBuild(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
 		t.Errorf("no binary: %v", err)
+	}
+}
+
+func TestTestWithErrors(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "app A {}\n\nfeature F {\n  test \"t\" {\n    expect x == 1\n  }\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Test(context.Background(), dir, "", true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil || code != ExitFailure || r.OK || len(r.Diagnostics) == 0 {
+		t.Fatalf("exit %d, result %+v, err %v", code, r, err)
+	}
+	if r.Diagnostics[0].Code != diag.V202 || r.Tests == nil || len(*r.Tests) != 0 {
+		t.Errorf("result = %+v", r)
+	}
+	if !strings.Contains(stdout.String(), `"tests": []`) {
+		t.Errorf("--json has no tests list: %s", stdout.String())
+	}
+}
+
+func TestWriteTests(t *testing.T) {
+	results := []testrun.Result{
+		{Name: "passes", Passed: true, DurationMS: 3},
+		{Name: "compares", DurationMS: 1, Failure: &vibe.Failure{File: "main.vibe", Line: 9, Message: "expect res.status == created", Left: "invalid", Right: "created"}},
+		{Name: "stops", Failure: &vibe.Failure{Message: "the test did not finish: panic\nmore"}},
+	}
+	var b bytes.Buffer
+	writeTests(&b, results)
+	want := `PASS  passes (3 ms)
+FAIL  compares (1 ms)
+      main.vibe:9: expect res.status == created
+        left:  invalid
+        right: created
+FAIL  stops (0 ms)
+      the test did not finish: panic
+      more
+3 tests, 2 failed
+`
+	if b.String() != want {
+		t.Errorf("writeTests =\n%s\nwant\n%s", b.String(), want)
+	}
+	for n, want := range map[int]string{0: "no tests to run\n", 1: "PASS  passes (3 ms)\n1 test passed\n"} {
+		b.Reset()
+		writeTests(&b, results[:n])
+		if b.String() != want {
+			t.Errorf("writeTests(%d results) = %q, want %q", n, b.String(), want)
+		}
+	}
+}
+
+func TestTest(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds the app; skipped with -short")
+	}
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("no go command on the PATH")
+	}
+	src := "app Shop {}\n\nmodel Book {\n  title: Text min 2\n}\n\nfeature Books {\n  crud Book at /books\n\n" +
+		"  test \"creates\" {\n    expect (post /books (title: \"Dune\")).status == created\n  }\n\n" +
+		"  test \"rejects\" {\n    expect (post /books (title: \"D\")).status == created\n  }\n}\n"
+	dir := makeProject(t, map[string]string{"main.vibe": src})
+	var stdout, stderr bytes.Buffer
+	code := Test(context.Background(), dir, "", false, &stdout, &stderr)
+	want := "PASS  creates (\nFAIL  rejects (\n      main.vibe:15: expect (post /books (title: \"D\")).status == created\n        left:  invalid\n        right: created\n2 tests, 1 failed\n"
+	got := regexp.MustCompile(`\(\d+ ms\)`).ReplaceAllString(stdout.String(), "(")
+	if code != ExitFailure || got != want {
+		t.Errorf("exit %d, stdout:\n%s\nwant:\n%s\nstderr: %s", code, stdout.String(), want, stderr.String())
+	}
+	stdout.Reset()
+	if code := Test(context.Background(), dir, "creates", true, &stdout, &stderr); code != ExitOK || !strings.Contains(stdout.String(), `"ok": true`) {
+		t.Errorf("-run creates: exit %d, %s", code, stdout.String())
 	}
 }

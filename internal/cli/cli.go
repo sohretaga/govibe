@@ -11,6 +11,7 @@ import (
 	"github.com/sohretaga/govibe/internal/diag"
 	"github.com/sohretaga/govibe/internal/format"
 	"github.com/sohretaga/govibe/internal/project"
+	"github.com/sohretaga/govibe/internal/testrun"
 )
 
 // Exit codes.
@@ -28,6 +29,7 @@ type result struct {
 	Files       []string          `json:"files,omitempty"`
 	Routes      []routeJSON       `json:"routes,omitempty"`
 	Output      string            `json:"output,omitempty"`
+	Tests       *[]testrun.Result `json:"tests,omitempty"`
 	Error       string            `json:"error,omitempty"`
 }
 

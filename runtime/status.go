@@ -66,6 +66,8 @@ type Error struct {
 	Message string
 	Fields  map[string]string
 	Cause   error
+	// Source is the .vibe file and line where a panic happened.
+	Source string
 }
 
 // Error returns the status name and message.

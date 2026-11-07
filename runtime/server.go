@@ -16,8 +16,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -112,7 +114,7 @@ func (a *App) Run(ctx context.Context, cfg Config, log *slog.Logger, ready func(
 	if err := db.prepare(ctx, a.Queries); err != nil {
 		return err
 	}
-	s := &server{db: db, log: log, ids: newIDs()}
+	s := &server{db: db, log: log, ids: newIDs(), limit: newLimiter(loginLimit)}
 	mux, err := s.routes(a.Routes)
 	if err != nil {
 		return err
@@ -151,9 +153,10 @@ func (a *App) Run(ctx context.Context, cfg Config, log *slog.Logger, ready func(
 
 // server is what every request shares.
 type server struct {
-	db  *DB
-	log *slog.Logger
-	ids *ids
+	db    *DB
+	log   *slog.Logger
+	ids   *ids
+	limit *limiter // login attempts per IP
 }
 
 func (s *server) routes(routes []Route) (mux *http.ServeMux, err error) {
@@ -195,6 +198,9 @@ func (s *server) handler(h func(*Ctx) error) http.Handler {
 		level := slog.LevelInfo
 		if e := asError(err); err != nil && e.Status == Internal {
 			level = slog.LevelError
+			if e.Source != "" {
+				attrs = append(attrs, "source", e.Source)
+			}
 			attrs = append(attrs, "error", e.Error())
 		}
 		if c.writeErr != nil {
@@ -242,7 +248,8 @@ type Ctx struct {
 func (c *Ctx) call(h func(*Ctx) error) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = &Error{Status: Internal, Message: statuses[Internal].message, Cause: fmt.Errorf("panic: %v\n%s", r, debug.Stack())}
+			err = &Error{Status: Internal, Message: statuses[Internal].message, Source: panicSource(),
+				Cause: fmt.Errorf("panic: %v\n%s", r, debug.Stack())}
 		}
 	}()
 	return h(c)
@@ -399,3 +406,36 @@ func (r *Row) Scan(dest ...any) error {
 
 // ErrNoRow means a query for one row found none.
 var ErrNoRow = errors.New("vibe: no row")
+
+// panicSource returns the innermost .vibe location on the stack of a
+// panicking goroutine, such as "main.vibe:24", or "". Generated code
+// carries line directives, so its frames point at .vibe lines.
+func panicSource() string {
+	pcs := make([]uintptr, 64)
+	n := runtime.Callers(3, pcs)
+	frames := runtime.CallersFrames(pcs[:n])
+	for {
+		f, more := frames.Next()
+		if strings.HasSuffix(f.File, ".vibe") {
+			return sourceName(f.File) + ":" + strconv.Itoa(f.Line)
+		}
+		if !more {
+			return ""
+		}
+	}
+}
+
+// sourceName turns the file of a line directive back into its name in
+// the project. Go resolves the relative names that generated code uses
+// against the build directory, which -trimpath shortens to the module
+// path vibeapp.
+func sourceName(file string) string {
+	file = strings.ReplaceAll(file, "\\", "/")
+	if _, rest, ok := strings.Cut(file, "/.vibe/build/"); ok {
+		return rest
+	}
+	if rest, ok := strings.CutPrefix(file, "vibeapp/"); ok {
+		return rest
+	}
+	return file
+}

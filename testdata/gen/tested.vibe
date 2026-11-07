@@ -1,0 +1,59 @@
+app Shelf {
+  db "sqlite://shelf.db"
+}
+
+auth User
+
+model User {
+  name: Text min 2 max 120
+  email: Email unique
+}
+
+model Book {
+  title: Text min 2 max 200
+  slug: Slug(title)
+  seller: Ref User
+  pages: Int min 1
+  price: Money min 0
+  note: Text?
+  published: Bool = false
+}
+
+feature Books {
+  crud Book at /books owner seller
+
+  get /books/search (q: Text?, tag: [Text]?, limit = 20) = Book.where(title contains q, published).newest().limit(limit)
+
+  test "requests and expectations" {
+    let u = User.add(name: "Frank", email: "frank@example.com")
+    login_as(u)
+    let res = post /books (title: "Dune", pages: 412, price: 9.99, note: none)
+    expect res.status == created
+    expect res.body.published == false
+    expect res.body.price == 9.99
+    expect res.body.pages >= 400 and res.body.title contains "un"
+    expect not res.body.published
+    expect len(res.body.title) == 4
+    let got = get /books/{res.body.id}
+    expect got.body.seller == u.id
+    expect got.body.title != none
+  }
+
+  test "seeded data and JSON values" {
+    let u = User.add(name: "Ursula", email: "ursula@example.com")
+    let b = Book.add(title: "Earthsea", seller: u.id, pages: 183, price: 7.50)
+    let list = get /books/search (q: "earth", tag: ["a", "b"], limit: 5)
+    expect len(list.body) == 0
+    let found = Book.find(slug: list.body.slug)
+    let same = Book.where(title == list.body.title).first()
+    if same != none and list.body.published {
+      expect same.pages == b.pages
+    } else if len(str(list.body.title)) > 3 {
+      fail "unexpected {list.body.title}"
+    }
+    expect found.id == b.id
+    expect "{b.title}!".starts_with(list.body.title)
+    login_as(list.body.user)
+    expect b.note == none
+  }
+}

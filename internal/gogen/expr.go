@@ -15,8 +15,10 @@ import (
 type body struct {
 	g     *gen
 	w     *strings.Builder
-	route *ir.Route // nil in a fn
-	fn    *ir.Func  // nil in a route
+	route *ir.Route // nil in a fn or test
+	fn    *ir.Func  // nil in a route or test
+	test  *ir.Test  // nil in a route or fn
+	pos   ir.Pos    // the .vibe statement being generated
 	temps int
 	names map[*ir.Var]string
 	taken map[string]bool
@@ -33,11 +35,20 @@ func (f *body) line(format string, args ...any) {
 
 // failOn writes the early return of a failed step.
 func (f *body) failOn() {
-	if f.route == nil {
+	f.line("if err != nil {\n%s\n}", f.returnErr())
+}
+
+// returnErr returns the statement that returns err: a route answers with
+// it; a test fails at the current .vibe line.
+func (f *body) returnErr() string {
+	switch {
+	case f.test != nil:
+		return fmt.Sprintf("return vibe.At(err, %q, %d)", f.pos.File, f.pos.Line)
+	case f.route == nil:
 		// Pure fns cannot fail; sema rejects queries in them.
 		panic("gogen: a fn cannot fail")
 	}
-	f.line("if err != nil {\nreturn err\n}")
+	return "return err"
 }
 
 func (f *body) temp() string {
@@ -114,8 +125,16 @@ func convert(x string, from, to *ir.Type) string {
 	return x
 }
 
-// value generates e converted to type want.
+// value generates e converted to type want. A dynamic JSON value of a
+// test is checked when the test runs.
 func (f *body) value(e ir.Expr, want *ir.Type) string {
+	if e.Type().Kind == ir.JSON && want != nil && want.Kind != ir.JSON && want.Kind != ir.Invalid {
+		x := f.expr(e)
+		t := f.temp()
+		f.line("%s, err := vibe.As[%s](%s, %q)", t, goType(want), x, want.String())
+		f.failOn()
+		return t
+	}
 	return convert(f.expr(e), e.Type(), want)
 }
 
@@ -159,7 +178,7 @@ func (f *body) expr(e ir.Expr) string {
 		return n
 	case *ir.Unary:
 		if e.Op == "not" {
-			return "!" + paren(f.expr(e.X))
+			return "!" + paren(f.value(e.X, ir.Basic(ir.Bool)))
 		}
 		return "-" + paren(f.expr(e.X))
 	case *ir.Binary:
@@ -167,6 +186,10 @@ func (f *body) expr(e ir.Expr) string {
 	case *ir.Interp:
 		return f.interp(e)
 	case *ir.ListExpr:
+		if e.Type().Elem.Kind == ir.Invalid {
+			// [] compared with a JSON value of a test has no element type.
+			return "[]any{}"
+		}
 		elems := make([]string, len(e.Elems))
 		for i, x := range e.Elems {
 			elems[i] = f.value(x, e.Type().Elem)
@@ -202,12 +225,16 @@ func (f *body) expr(e ir.Expr) string {
 	case *ir.Update:
 		return f.update(e)
 	case *ir.Delete:
-		f.line("if err := delete%s(c, %s); err != nil {\nreturn err\n}", e.X.Type().Model.Name, f.expr(e.X))
+		f.line("if err := delete%s(c, %s); err != nil {\n%s\n}", e.X.Type().Model.Name, f.expr(e.X), f.returnErr())
 		return ""
 	case *ir.Me:
 		return "me"
-	case *ir.Request, *ir.Member, *ir.StatusName:
-		f.g.unsupported(e.Position(), "requests outside tests")
+	case *ir.Request:
+		return f.request(e)
+	case *ir.Member:
+		return f.member(e)
+	case *ir.StatusName:
+		return statusConst(e.Name)
 	}
 	panic(fmt.Sprintf("gogen: expression %T", e))
 }
@@ -255,8 +282,8 @@ func (f *body) binary(e *ir.Binary) string {
 // statements, they run only if the left side does not decide.
 func (f *body) logic(e *ir.Binary) string {
 	op := map[string]string{"and": "&&", "or": "||"}[e.Op]
-	x := f.expr(e.X)
-	stmts, y := f.capture(func() string { return f.expr(e.Y) })
+	x := f.value(e.X, ir.Basic(ir.Bool))
+	stmts, y := f.capture(func() string { return f.value(e.Y, ir.Basic(ir.Bool)) })
 	if stmts == "" {
 		return paren(x) + " " + op + " " + paren(y)
 	}
@@ -288,8 +315,19 @@ func (f *body) arith(e *ir.Binary) string {
 }
 
 func (f *body) compare(e *ir.Binary) string {
+	return f.compareCode(e, f.expr(e.X), f.expr(e.Y))
+}
+
+// compareCode compares x and y, the generated operands of e.
+func (f *body) compareCode(e *ir.Binary, x, y string) string {
 	xt, yt := e.X.Type(), e.Y.Type()
-	x, y := f.expr(e.X), f.expr(e.Y)
+	if xt.Kind == ir.JSON || yt.Kind == ir.JSON {
+		// A test compares JSON values as the API writes them.
+		t := f.temp()
+		f.line("%s, err := vibe.Compare(%q, %s, %s)", t, e.Op, x, y)
+		f.failOn()
+		return t
+	}
 	if e.Op == "contains" {
 		return "vibe.Contains(" + x + ", " + y + ")"
 	}
@@ -357,8 +395,22 @@ func (f *body) interp(e *ir.Interp) string {
 }
 
 func (f *body) builtin(e *ir.Builtin) string {
+	switch {
+	case e.Name == "login_as":
+		return f.loginAs(e)
+	case e.Name == "len" && e.Args[0].Type().Kind == ir.JSON:
+		x := f.expr(e.Args[0])
+		t := f.temp()
+		f.line("%s, err := vibe.JSONLen(%s)", t, x)
+		f.failOn()
+		return t
+	}
 	args := make([]string, len(e.Args))
 	for i, a := range e.Args {
+		if i > 0 && (e.Name == "starts_with" || e.Name == "ends_with") {
+			args[i] = f.value(a, ir.Basic(ir.Text))
+			continue
+		}
 		args[i] = f.expr(a)
 	}
 	switch e.Name {
@@ -384,8 +436,6 @@ func (f *body) builtin(e *ir.Builtin) string {
 		return "strings.HasPrefix(" + args[0] + ", " + args[1] + ")"
 	case "ends_with":
 		return "strings.HasSuffix(" + args[0] + ", " + args[1] + ")"
-	case "login_as":
-		f.g.unsupported(e.Position(), "login_as outside tests")
 	}
 	panic("gogen: builtin " + e.Name)
 }
@@ -406,8 +456,13 @@ func (f *body) query(q *ir.QueryExpr) string {
 
 // param returns a query parameter as the database stores it.
 func (f *body) param(p sqlgen.Param) string {
-	x := f.expr(p.Expr)
 	t := p.Expr.Type()
+	var x string
+	if t.Kind == ir.JSON && p.Want != nil {
+		x, t = f.value(p.Expr, p.Want), p.Want
+	} else {
+		x = f.expr(p.Expr)
+	}
 	switch {
 	case p.Use == sqlgen.Limit:
 		return "vibe.Limit(" + x + ")"

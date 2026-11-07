@@ -253,7 +253,10 @@ Email, ID) or a model of the project.`,
 		Title:    "reserved name",
 		Template: "%s cannot be named %s: %s",
 		Explanation: `Built-in type names cannot name models, and built-in function names (now,
-len, str, login_as) cannot name functions.`,
+len, str, login_as) cannot name functions. The auth model cannot have a
+field named password or password_hash: auth stores the password hash
+itself and never shows it. No model can be named VibeSession, whose table
+holds the login sessions.`,
 		Before: "model Text {\n  body: Text\n}",
 		After:  "model Note {\n  body: Text\n}",
 	},

@@ -156,6 +156,10 @@ func (c *checker) collect(files []*ast.File) {
 					c.errorAt(f, diag.V209, d.Name, "a model", quote(name), "it is a built-in type")
 					continue
 				}
+				if name == "VibeSession" {
+					c.errorAt(f, diag.V209, d.Name, "a model", quote(name), "its table vibe_session holds the login sessions")
+					continue
+				}
 				if prev, ok := c.models[name]; ok {
 					c.errorAt(f, diag.V207, d.Name, "model "+name, prev.where(), decl{f, d}.where())
 					continue

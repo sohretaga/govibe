@@ -62,38 +62,38 @@ SELECT 1 FROM book WHERE id = ?1;
 
 -- GET /search
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book WHERE (?1 IS NULL OR vibe_contains(title, ?1)) AND published ORDER BY created_at DESC, id DESC LIMIT ?2;
---   ?1 = q (Text?, value)
---   ?2 = limit (Int, limit)
+--   ?1 = q (Text?, value, bound as Text)
+--   ?2 = limit (Int, limit, bound as Int)
 -- GET /cheap
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book WHERE (?1 IS NULL OR price <= ?1) AND (?2 IS NULL OR pages >= ?2) ORDER BY price, pages DESC, id DESC LIMIT 1000;
---   ?1 = max_price (Money?, value)
---   ?2 = min_pages (Int?, value)
+--   ?1 = max_price (Money?, value, bound as Money)
+--   ?2 = min_pages (Int?, value, bound as Int)
 -- GET /either
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book WHERE ((NOT ?1 IS NULL AND vibe_contains(title, ?1)) OR ?2) AND (?3 IS NULL OR NOT vibe_contains(note, ?3)) LIMIT 1000;
---   ?1 = q (Text?, value)
---   ?2 = all (Bool, value)
---   ?3 = q (Text?, value)
+--   ?1 = q (Text?, value, bound as Text)
+--   ?2 = all (Bool, value, bound as Bool)
+--   ?3 = q (Text?, value, bound as Text)
 -- GET /none
 SELECT COUNT(*) FROM book WHERE editor_id IS NULL AND released_at IS NOT NULL;
 -- GET /nick
 SELECT id, created_at, updated_at, name, email, nickname FROM user WHERE (nickname IS ?1 OR nickname IS NOT 'x') LIMIT 1;
---   ?1 = n (Text, value)
+--   ?1 = n (Text, value, bound as Text)
 -- GET /page
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book LIMIT 10 OFFSET ?1;
---   ?1 = (n * 10) (Int, offset)
+--   ?1 = (n * 10) (Int, offset, bound as Int)
 -- GET /counted
 SELECT COUNT(*) FROM (SELECT 1 FROM book LIMIT ?1);
---   ?1 = n (Int, limit)
+--   ?1 = n (Int, limit, bound as Int)
 -- GET /first_page
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book WHERE published ORDER BY title, id LIMIT 1 OFFSET ?1;
---   ?1 = n (Int, offset)
+--   ?1 = n (Int, offset, bound as Int)
 -- GET /flag
 SELECT id, created_at, updated_at, title, slug, seller_id, editor_id, pages, price, rating, published, note, released_at FROM book WHERE (?1 AND published = ?2) LIMIT 1000;
---   ?1 = on (Bool, value)
---   ?2 = on (Bool, value)
+--   ?1 = on (Bool, value, bound as Bool)
+--   ?2 = on (Bool, value, bound as Bool)
 -- GET /orders
 SELECT id, created_at, updated_at, book_id, quantity, "group" FROM "order" WHERE (?1 IS NULL OR "group" IS ?1) AND quantity > 1 LIMIT 1000;
---   ?1 = q (Text?, value)
+--   ?1 = q (Text?, value, bound as Text)
 -- GET /order
 SELECT id, created_at, updated_at, book_id, quantity, "group" FROM "order" ORDER BY "group" DESC, id DESC LIMIT 1000;
 -- GET /one

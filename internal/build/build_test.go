@@ -46,9 +46,9 @@ func TestMapErrors(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := "# vibeapp\n./handlers.go:3:12: undefined: x\nmain.vibe:7:3: cannot use y\n"
-	ds := mapErrors(root, &ir.Program{}, out)
+	ds := MapErrors(root, &ir.Program{}, out)
 	if len(ds) != 2 {
-		t.Fatalf("mapErrors = %+v, want 2 diagnostics", ds)
+		t.Fatalf("MapErrors = %+v, want 2 diagnostics", ds)
 	}
 	g, v := ds[0], ds[1]
 	if g.Code != diag.V902 || g.File != ".vibe/build/handlers.go" || g.Range.Start.Line != 3 || g.Range.Start.Col != 12 ||
@@ -59,11 +59,11 @@ func TestMapErrors(t *testing.T) {
 		t.Errorf(".vibe diagnostic = %+v", v)
 	}
 
-	ds = mapErrors(root, &ir.Program{}, "go: modernc.org/sqlite@v1.60.1: missing go.sum entry\n")
+	ds = MapErrors(root, &ir.Program{}, "go: modernc.org/sqlite@v1.60.1: missing go.sum entry\n")
 	if len(ds) != 1 || ds[0].File != "" || !strings.Contains(ds[0].Message, "missing go.sum entry") {
 		t.Errorf("unlocated error = %+v", ds)
 	}
-	if ds := mapErrors(root, &ir.Program{}, ""); len(ds) != 1 || !strings.Contains(ds[0].Message, "no message") {
+	if ds := MapErrors(root, &ir.Program{}, ""); len(ds) != 1 || !strings.Contains(ds[0].Message, "no message") {
 		t.Errorf("empty output = %+v", ds)
 	}
 }
@@ -131,9 +131,9 @@ func TestMapExternErrors(t *testing.T) {
 		"main.vibe:3:1: cannot use ext.Pay (value of type func(n float64) string) as func(context.Context, int64) (string, error) value in array or slice literal\n" +
 		"main.vibe:6:40: too many return values in call to ext.Pay\n" +
 		"ext/pay.go:4:2: declared and not used: x\n"
-	ds := mapErrors(root, prog, out)
+	ds := MapErrors(root, prog, out)
 	if len(ds) != 2 {
-		t.Fatalf("mapErrors = %+v, want V903 and the go/ error", ds)
+		t.Fatalf("MapErrors = %+v, want V903 and the go/ error", ds)
 	}
 	if ds[0].File != "go/pay.go" || ds[0].Code != diag.V902 {
 		t.Errorf("error in go/ = %+v", ds[0])

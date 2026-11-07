@@ -247,3 +247,17 @@ func TestConversions(t *testing.T) {
 		})
 	}
 }
+
+func TestExpectText(t *testing.T) {
+	prog := check(t, "app A {}\n\nfeature F {\n  test \"t\" {\n    let n = 2\n    expect (n + 1)  ==   3 # spaced\n    expect not (n > 5)\n  }\n}\n")
+	var got []string
+	for _, s := range prog.Features[0].Tests[0].Body.Stmts {
+		if e, ok := s.(*ir.Expect); ok {
+			got = append(got, e.Text)
+		}
+	}
+	want := []string{"(n + 1)  ==   3", "not (n > 5)"}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("expect texts = %q, want %q", got, want)
+	}
+}

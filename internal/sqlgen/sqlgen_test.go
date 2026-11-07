@@ -100,7 +100,7 @@ func dump(t *testing.T, path string) string {
 				p := Select(e)
 				fmt.Fprintf(&b, "-- %s %s\n%s;\n", r.Method, r.Path, p.SQL)
 				for i, prm := range p.Params {
-					fmt.Fprintf(&b, "--   ?%d = %s (%s, %s)\n", i+1, describe(prm.Expr), prm.Expr.Type(), uses[prm.Use])
+					fmt.Fprintf(&b, "--   ?%d = %s (%s, %s, bound as %s)\n", i+1, describe(prm.Expr), prm.Expr.Type(), uses[prm.Use], prm.Want)
 				}
 				return false
 			case *ir.Find:

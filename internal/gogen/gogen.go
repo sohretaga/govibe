@@ -60,6 +60,10 @@ func Generate(p *ir.Program) (files map[string][]byte, err error) {
 	if externs := g.externs(); externs != header {
 		src["externs.go"] = externs
 	}
+	// Tests come before queries.go, which holds the queries they run too.
+	if tests := g.tests(); tests != header {
+		src[TestFile] = tests
+	}
 	src["queries.go"] = g.queries()
 	src["main.go"] = g.main()
 	files = map[string][]byte{}
@@ -175,6 +179,7 @@ var packages = map[string]string{
 	"ext":     "vibeapp/ext",
 	"bcrypt":  "golang.org/x/crypto/bcrypt",
 	"context": "context",
+	"testing": "testing",
 }
 
 // finish adds the imports a file uses and formats it.

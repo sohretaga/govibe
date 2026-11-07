@@ -94,6 +94,8 @@ func Str(v any) string {
 		return v.UTC().Format(time.RFC3339Nano)
 	case nil:
 		return "none"
+	case JSON:
+		return v.text()
 	}
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Pointer {

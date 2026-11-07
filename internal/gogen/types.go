@@ -34,6 +34,12 @@ func goType(t *ir.Type) string {
 			return goType(t.Elem)
 		}
 		return "*" + goType(t.Elem)
+	case ir.JSON:
+		return "vibe.JSON"
+	case ir.Response:
+		return "*vibe.Response"
+	case ir.Status:
+		return "vibe.Status"
 	}
 	panic(fmt.Sprintf("gogen: no Go type for %s", t))
 }

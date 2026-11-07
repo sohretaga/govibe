@@ -56,20 +56,28 @@ func (g *gen) externs() string {
 	return b.String()
 }
 
-var mainTemplate = template.Must(template.New("main.go").Parse(`// main starts {{.Name}}. Flags override environment variables, which
-// override the app block: --port or VIBE_PORT, --db or VIBE_DB.
-func main() {
+var mainTemplate = template.Must(template.New("main.go").Parse(`// init registers vibe_contains, the SQL function of contains.
+func init() {
 	sqlite.MustRegisterDeterministicScalarFunction("vibe_contains", 2, func(_ *sqlite.FunctionContext, args []driver.Value) (driver.Value, error) {
 		return vibe.SQLContains(args)
 	})
-	app := &vibe.App{
+}
+
+// newApp returns {{.Name}}: its tables, queries and routes.
+func newApp() *vibe.App {
+	return &vibe.App{
 		Name:    {{printf "%q" .Name}},
 		DB:      {{printf "%q" .DB}},
 		Tables:  tables(),
 		Queries: queries(),
 		Routes:  routes(),
 	}
-	os.Exit(app.Main(os.Args[1:]))
+}
+
+// main starts {{.Name}}. Flags override environment variables, which
+// override the app block: --port or VIBE_PORT, --db or VIBE_DB.
+func main() {
+	os.Exit(newApp().Main(os.Args[1:]))
 }
 `))
 

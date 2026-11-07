@@ -162,8 +162,8 @@ func TestReferenceApp(t *testing.T) {
 		routes = append(routes, r.Method+" "+r.Path+" -> "+r.Status+" "+r.Result.String()+login)
 	}
 	want := []string{
-		"POST /auth/register -> created User",
-		"POST /auth/login -> ok User",
+		"POST /auth/register -> created {user: User, token: Text}",
+		"POST /auth/login -> ok {user: User, token: Text}",
 		"POST /auth/logout -> empty no value",
 		"GET /auth/me -> ok User login",
 		"GET /books -> ok [Book]",

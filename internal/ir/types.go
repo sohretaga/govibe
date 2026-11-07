@@ -25,13 +25,14 @@ const (
 	Status                // a status name such as created or conflict
 	JSON                  // a dynamic JSON value in a test
 	ModelName             // a model name used as a value, as in Book.where
+	Session               // {user: Model, token: Text}, the answer of register and login
 )
 
 // Type is a GoVibe type.
 type Type struct {
 	Kind  Kind
 	Elem  *Type  // element of List and Optional
-	Model *Model // model of Record, Query and ModelName
+	Model *Model // model of Record, Query, ModelName and Session
 }
 
 // Basic returns the type of kind k, which must not need an element or a
@@ -86,6 +87,8 @@ func (t *Type) String() string {
 		return "Query " + t.Model.Name
 	case ModelName:
 		return "model " + t.Model.Name
+	case Session:
+		return "{user: " + t.Model.Name + ", token: Text}"
 	}
 	if int(t.Kind) < len(kindNames) {
 		return kindNames[t.Kind]
@@ -101,7 +104,7 @@ func Identical(a, b *Type) bool {
 	switch a.Kind {
 	case List, Optional:
 		return Identical(a.Elem, b.Elem)
-	case Record, Query, ModelName:
+	case Record, Query, ModelName, Session:
 		return a.Model == b.Model
 	}
 	return true

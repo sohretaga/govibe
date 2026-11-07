@@ -1,13 +1,13 @@
-METHOD  PATH                 PARAMS                                                           RESULT  LOGIN  FROM
-POST    /auth/register       email: Email, password: Text, name: Text                         User           auth register (main.vibe:5)
-POST    /auth/login          email: Email, password: Text                                     User           auth login (main.vibe:5)
-POST    /auth/logout                                                                          empty          auth logout (main.vibe:5)
-GET     /auth/me                                                                              User    yes    auth me (main.vibe:5)
-GET     /books               limit: Int = 50, offset: Int = 0                                 [Book]         crud Book list (main.vibe:21)
-GET     /books/{id}                                                                           Book           crud Book get (main.vibe:21)
-POST    /books               title: Text, pages: Int, price: Money, published: Bool? = false  Book    yes    crud Book create (main.vibe:21)
-PATCH   /books/{id}          title: Text?, pages: Int?, price: Money?, published: Bool?       Book    yes    crud Book update (main.vibe:21)
-DELETE  /books/{id}                                                                           empty   yes    crud Book delete (main.vibe:21)
-GET     /books/search        q: Text?, limit: Int = 20                                        [Book]         route (main.vibe:23)
-POST    /books/{id}/publish                                                                   Book    yes    route (main.vibe:25)
-GET     /healthz                                                                              Json           builtin
+METHOD  PATH                 PARAMS                                                           RESULT                     LOGIN  FROM
+POST    /auth/register       email: Email, password: Text, name: Text                         {user: User, token: Text}         auth register (main.vibe:5)
+POST    /auth/login          email: Email, password: Text                                     {user: User, token: Text}         auth login (main.vibe:5)
+POST    /auth/logout                                                                          empty                             auth logout (main.vibe:5)
+GET     /auth/me                                                                              User                       yes    auth me (main.vibe:5)
+GET     /books               limit: Int = 50, offset: Int = 0                                 [Book]                            crud Book list (main.vibe:21)
+GET     /books/{id}                                                                           Book                              crud Book get (main.vibe:21)
+POST    /books               title: Text, pages: Int, price: Money, published: Bool? = false  Book                       yes    crud Book create (main.vibe:21)
+PATCH   /books/{id}          title: Text?, pages: Int?, price: Money?, published: Bool?       Book                       yes    crud Book update (main.vibe:21)
+DELETE  /books/{id}                                                                           empty                      yes    crud Book delete (main.vibe:21)
+GET     /books/search        q: Text?, limit: Int = 20                                        [Book]                            route (main.vibe:23)
+POST    /books/{id}/publish                                                                   Book                       yes    route (main.vibe:25)
+GET     /healthz                                                                              Json                              builtin

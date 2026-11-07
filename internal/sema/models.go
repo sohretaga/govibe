@@ -160,6 +160,7 @@ func (c *checker) resolveAuth() {
 	}
 	c.auth = m
 	c.prog.Auth = m.ir
+	m.ir.Auth = true
 	email := m.ir.Field("email")
 	var fd *ast.Field
 	for _, x := range m.ast.Fields {

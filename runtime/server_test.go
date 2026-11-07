@@ -287,3 +287,62 @@ func TestUnknownStatusFail(t *testing.T) {
 		t.Errorf("fail(internal) = %d %s", w.Code, w.Body)
 	}
 }
+
+func TestListInput(t *testing.T) {
+	in, err := bodyOf(t, `{"tags":["a","b"],"ns":[1,2],"bad":[1,"x"],"none":null}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tags := ReqList[string](in, "tags", AsText)
+	ns := OptList[int64](in, "ns", AsInt)
+	ReqList[int64](in, "bad", AsInt)
+	missing := OptList[string](in, "none", AsText)
+	ReqList[string](in, "absent", AsText)
+	if len(tags) != 2 || tags[1] != "b" || ns == nil || (*ns)[1] != 2 || missing != nil {
+		t.Errorf("tags %v, ns %v, none %v", tags, ns, missing)
+	}
+	e := asError(in.Err())
+	if e.Status != BadRequest || e.Fields["bad.1"] != "must be a whole number" {
+		t.Errorf("errors = %v %v", e.Status, e.Fields)
+	}
+	if in.invalid["absent"] != "is required" {
+		t.Errorf("missing list = %v", in.invalid)
+	}
+
+	q := queryInput(httptest.NewRequest("GET", "/?tag=a&tag=b&n=1&n=x", nil))
+	if got := ReqList[string](q, "tag", AsText); len(got) != 2 || got[0] != "a" {
+		t.Errorf("query list = %v", got)
+	}
+	ReqList[int64](q, "n", AsInt)
+	if q.bad["n.1"] != "must be a whole number" {
+		t.Errorf("query list errors = %v", q.bad)
+	}
+}
+
+func TestObjectInput(t *testing.T) {
+	in, err := bodyOf(t, `{"book":{"title":"Dune","pages":"x","extra":1},"list":[1],"none":null}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub := in.Object("book", true)
+	if sub == nil {
+		t.Fatal("Object returned nil")
+	}
+	if Req[string](sub, "title", AsText) != "Dune" {
+		t.Error("title not read")
+	}
+	Req[int64](sub, "pages", AsInt)
+	in.Merge("book", sub)
+	if in.bad["book.pages"] != "must be a whole number" || in.invalid["book.extra"] != "unknown field" {
+		t.Errorf("merged errors: bad %v, invalid %v", in.bad, in.invalid)
+	}
+	if in.Object("list", true) != nil || in.bad["list"] != "must be an object" {
+		t.Errorf("a list is not an object: %v", in.bad)
+	}
+	if in.Object("none", false) != nil || in.invalid["none"] != "" {
+		t.Error("an optional null object is not none")
+	}
+	if in.Object("absent", true) != nil || in.invalid["absent"] != "is required" {
+		t.Error("a missing object is not required")
+	}
+}

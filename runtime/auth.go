@@ -72,6 +72,13 @@ func (c *Ctx) SessionToken() string {
 	return ""
 }
 
+// HasSessionCookie reports whether the request carries the session
+// cookie, which a renewed session sends again with its new expiry.
+func (c *Ctx) HasSessionCookie() bool {
+	_, err := c.r.Cookie(SessionCookie)
+	return err == nil
+}
+
 // SetSessionCookie sends the session cookie: HttpOnly, SameSite=Lax, and
 // Secure when the request came over TLS. An empty token clears it.
 func (c *Ctx) SetSessionCookie(token string) {
@@ -159,4 +166,19 @@ func (l *limiter) allow(key string, now time.Time) bool {
 	}
 	l.events[key] = append(ts, now)
 	return true
+}
+
+// NoAccountHash is a bcrypt hash that login checks when no account has
+// the email, so a login takes as long whether the email exists or not.
+const NoAccountHash = "$2a$10$WqIt4o3pbEQW4wmqr/i/DufKar4.kTFBGP1yDK9ScMccHePq2D.A2"
+
+// CheckPassword adds the password rules a new password breaks to errs:
+// at least 8 characters, and at most 72 bytes, the most bcrypt reads.
+func CheckPassword(errs *Errors, password string) {
+	switch {
+	case Len(password) < 8:
+		errs.Invalid("password", "must be at least 8 characters")
+	case len(password) > 72:
+		errs.Invalid("password", "must be at most 72 bytes")
+	}
 }

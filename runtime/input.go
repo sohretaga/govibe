@@ -308,3 +308,96 @@ func Def[T any](in *Input, name string, k Kind, def T) T {
 	}
 	return v.(T)
 }
+
+// ReqList reads a required list param: a JSON array in a body, or every
+// value of a repeated query key, as in ?tag=a&tag=b.
+func ReqList[T any](in *Input, name string, k Kind) []T {
+	vs, s := list[T](in, name, k)
+	if s == absent || s == null {
+		in.Invalid(name, "is required")
+	}
+	return vs
+}
+
+// OptList reads an optional list param: nil when it is missing or null.
+func OptList[T any](in *Input, name string, k Kind) *[]T {
+	vs, s := list[T](in, name, k)
+	if s != present {
+		return nil
+	}
+	return &vs
+}
+
+func list[T any](in *Input, name string, k Kind) ([]T, state) {
+	in.used[name] = true
+	var items []any
+	var msgs []string
+	if in.body != nil {
+		raw, ok := in.body[name]
+		switch {
+		case !ok:
+			return nil, absent
+		case string(raw) == "null":
+			return nil, null
+		}
+		var elems []json.RawMessage
+		if json.Unmarshal(raw, &elems) != nil || elems == nil {
+			in.Bad(name, "must be a list")
+			return nil, bad
+		}
+		for _, e := range elems {
+			v, msg := fromJSON(e, k)
+			items, msgs = append(items, v), append(msgs, msg)
+		}
+	} else {
+		vs, ok := in.query[name]
+		if !ok {
+			return nil, absent
+		}
+		for _, s := range vs {
+			v, msg := fromText(s, k)
+			items, msgs = append(items, v), append(msgs, msg)
+		}
+	}
+	out := make([]T, 0, len(items))
+	for i, v := range items {
+		item := name + "." + strconv.Itoa(i)
+		if _, s := in.check(item, v, msgs[i], k); s != present {
+			return nil, bad
+		}
+		out = append(out, v.(T))
+	}
+	return out, present
+}
+
+// Object reads a param that holds a record, a JSON object of the model's
+// fields, as an Input of its own. It returns nil when the param is
+// missing or null, which is "is required" when required is set.
+func (in *Input) Object(name string, required bool) *Input {
+	in.used[name] = true
+	raw, ok := in.body[name]
+	if in.body == nil || !ok || string(raw) == "null" {
+		if required {
+			in.Invalid(name, "is required")
+		}
+		return nil
+	}
+	sub := &Input{body: map[string]json.RawMessage{}, used: map[string]bool{}}
+	if json.Unmarshal(raw, &sub.body) != nil || sub.body == nil {
+		in.Bad(name, "must be an object")
+		return nil
+	}
+	return sub
+}
+
+// Merge records the problems of sub, the Input of the object param
+// name, as problems of in, under "name.field".
+func (in *Input) Merge(name string, sub *Input) {
+	sub.Done()
+	for f, msg := range sub.bad {
+		in.Bad(name+"."+f, msg)
+	}
+	for f, msg := range sub.invalid {
+		in.Invalid(name+"."+f, msg)
+	}
+}

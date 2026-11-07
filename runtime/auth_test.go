@@ -142,3 +142,18 @@ func TestSourceName(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckPassword(t *testing.T) {
+	for pw, want := range map[string]string{
+		"short":                 "must be at least 8 characters",
+		"long enough":           "",
+		"şəhər12":               "must be at least 8 characters",
+		strings.Repeat("a", 73): "must be at most 72 bytes",
+	} {
+		var errs Errors
+		CheckPassword(&errs, pw)
+		if got := errs.invalid["password"]; got != want {
+			t.Errorf("CheckPassword(%.10q) = %q, want %q", pw, got, want)
+		}
+	}
+}

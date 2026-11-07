@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V504",
+      "severity": "error",
+      "message": "only one auth is allowed: the first is auth User at v504_second_auth.vibe:3",
+      "file": "v504_second_auth.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 1
+        },
+        "end": {
+          "line": 5,
+          "col": 11
+        }
+      },
+      "snippet": "auth Admin",
+      "fixes": [],
+      "help": "vibe explain V504"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V501",
+      "severity": "error",
+      "message": "unknown model 'Usr' in Ref",
+      "file": "v501_unknown_ref.vibe",
+      "range": {
+        "start": {
+          "line": 8,
+          "col": 15
+        },
+        "end": {
+          "line": 8,
+          "col": 18
+        }
+      },
+      "snippet": "  seller: Ref Usr",
+      "fixes": [
+        {
+          "title": "Use 'User'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 8,
+                  "col": 15
+                },
+                "end": {
+                  "line": 8,
+                  "col": 18
+                }
+              },
+              "new_text": "User"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V501"
+    }
+  ]
+}

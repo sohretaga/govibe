@@ -1,0 +1,9 @@
+app Shop {}
+
+model User {
+  name: Text
+}
+
+model Book {
+  seller: Ref Usr
+}

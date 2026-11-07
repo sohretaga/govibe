@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: Book.all().first() is optional (Book?); test it with x != none before reading title",
+      "file": "v301_optional.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 22
+        },
+        "end": {
+          "line": 19,
+          "col": 40
+        }
+      },
+      "snippet": "  get /books/first = Book.all().first().title",
+      "fixes": [],
+      "help": "vibe explain V301"
+    },
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: q is optional (Text?); test it with x != none before calling upper",
+      "file": "v301_optional.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 33
+        },
+        "end": {
+          "line": 21,
+          "col": 34
+        }
+      },
+      "snippet": "  get /books/shout (q: Text?) = q.upper()",
+      "fixes": [],
+      "help": "vibe explain V301"
+    }
+  ]
+}

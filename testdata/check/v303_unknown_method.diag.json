@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V303",
+      "severity": "error",
+      "message": "Query Book has no method 'sort'; it has order, newest, limit, offset, first, count",
+      "file": "v303_unknown_method.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 38
+        },
+        "end": {
+          "line": 19,
+          "col": 42
+        }
+      },
+      "snippet": "  get /books = Book.where(published).sort(title)",
+      "fixes": [
+        {
+          "title": "Use 'order'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 19,
+                  "col": 38
+                },
+                "end": {
+                  "line": 19,
+                  "col": 42
+                }
+              },
+              "new_text": "order"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V303"
+    }
+  ]
+}

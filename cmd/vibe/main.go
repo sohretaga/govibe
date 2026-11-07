@@ -15,8 +15,10 @@ const usage = `vibe is the GoVibe compiler.
 
 Usage:
 
-	vibe check [--json]          lex and parse the project and report diagnostics
+	vibe check [--json]          parse and type-check the project and report diagnostics
+	vibe routes [--json]         list every route, including those crud and auth generate
 	vibe fmt [--check] [--json]  rewrite files in canonical format
+	vibe explain <code> [--json] explain a diagnostic code, such as V201
 
 Run vibe from the project root.
 `
@@ -50,6 +52,20 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 			return cli.ExitUsage
 		}
 		return cli.Fmt(ctx, ".", *check, *jsonOut, stdout, stderr)
+	case "routes":
+		if !parse(fs, args) {
+			return cli.ExitUsage
+		}
+		return cli.Routes(ctx, ".", *jsonOut, stdout, stderr)
+	case "explain":
+		if err := fs.Parse(args); err != nil {
+			return cli.ExitUsage
+		}
+		if fs.NArg() != 1 {
+			fmt.Fprintln(stderr, "usage: vibe explain <code> [--json], as in vibe explain V201")
+			return cli.ExitUsage
+		}
+		return cli.Explain(fs.Arg(0), *jsonOut, stdout, stderr)
 	case "help", "-h", "-help", "--help":
 		fmt.Fprint(stdout, usage)
 		return cli.ExitOK

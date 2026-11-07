@@ -10,7 +10,9 @@ import (
 
 	"github.com/sohretaga/govibe/internal/ast"
 	"github.com/sohretaga/govibe/internal/diag"
+	"github.com/sohretaga/govibe/internal/ir"
 	"github.com/sohretaga/govibe/internal/parser"
+	"github.com/sohretaga/govibe/internal/sema"
 	"github.com/sohretaga/govibe/internal/token"
 )
 
@@ -87,4 +89,21 @@ func Parse(srcs []Source) ([]*ast.File, []diag.Diagnostic) {
 		diags = append(diags, ds...)
 	}
 	return files, diag.Truncate(diags)
+}
+
+// Check parses every source and, when they parse without errors, resolves
+// and type-checks the program. Semantic checks wait for clean syntax so
+// that a syntax error does not cascade into name errors. The program is
+// nil when any diagnostic is an error.
+func Check(srcs []Source) (*ir.Program, []diag.Diagnostic) {
+	files, diags := Parse(srcs)
+	if diag.HasErrors(diags) {
+		return nil, diags
+	}
+	prog, more := sema.Check(files)
+	diags = diag.Truncate(append(diags, more...))
+	if diag.HasErrors(diags) {
+		return nil, diags
+	}
+	return prog, diags
 }

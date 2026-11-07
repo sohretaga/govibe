@@ -1,0 +1,62 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V306",
+      "severity": "error",
+      "message": "fn sign does not return a value on every path",
+      "file": "v306_missing_return.vibe",
+      "range": {
+        "start": {
+          "line": 5,
+          "col": 1
+        },
+        "end": {
+          "line": 5,
+          "col": 2
+        }
+      },
+      "snippet": "}",
+      "fixes": [],
+      "help": "vibe explain V306"
+    },
+    {
+      "code": "V306",
+      "severity": "error",
+      "message": "fn double does not return a value on every path",
+      "file": "v306_missing_return.vibe",
+      "range": {
+        "start": {
+          "line": 9,
+          "col": 1
+        },
+        "end": {
+          "line": 9,
+          "col": 2
+        }
+      },
+      "snippet": "}",
+      "fixes": [
+        {
+          "title": "Return the last value",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 8,
+                  "col": 3
+                },
+                "end": {
+                  "line": 8,
+                  "col": 3
+                }
+              },
+              "new_text": "return "
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V306"
+    }
+  ]
+}

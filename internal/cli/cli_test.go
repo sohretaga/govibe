@@ -4,50 +4,185 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+	"time"
+	"unicode/utf8"
 
+	"github.com/sohretaga/govibe/internal/diag"
 	"github.com/sohretaga/govibe/internal/golden"
 )
 
-// TestCheckGolden runs "vibe check --json" on each file in testdata/check
-// as a one-file project and compares the output with its .diag.json.
-func TestCheckGolden(t *testing.T) {
-	paths, err := filepath.Glob("../../testdata/check/*.vibe")
-	if err != nil || len(paths) < 20 {
-		t.Fatalf("want at least 20 check cases, found %d: %v", len(paths), err)
+// checkCases returns the cases in testdata/check: a .vibe file is a
+// one-file project, a folder a project of several files.
+func checkCases(t *testing.T) map[string]map[string][]byte {
+	t.Helper()
+	entries, err := os.ReadDir("../../testdata/check")
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, path := range paths {
-		name := strings.TrimSuffix(filepath.Base(path), ".vibe")
-		t.Run(name, func(t *testing.T) {
-			src, err := os.ReadFile(path)
+	cases := map[string]map[string][]byte{}
+	for _, ent := range entries {
+		path := filepath.Join("../../testdata/check", ent.Name())
+		switch {
+		case ent.IsDir():
+			files := map[string][]byte{}
+			sub, err := os.ReadDir(path)
 			if err != nil {
 				t.Fatal(err)
 			}
-			dir := t.TempDir()
-			if err := os.WriteFile(filepath.Join(dir, filepath.Base(path)), src, 0o644); err != nil {
+			for _, f := range sub {
+				data, err := os.ReadFile(filepath.Join(path, f.Name()))
+				if err != nil {
+					t.Fatal(err)
+				}
+				files[f.Name()] = data
+			}
+			cases[ent.Name()] = files
+		case strings.HasSuffix(ent.Name(), ".vibe"):
+			data, err := os.ReadFile(path)
+			if err != nil {
 				t.Fatal(err)
 			}
-			var stdout, stderr bytes.Buffer
-			code := Check(context.Background(), dir, true, &stdout, &stderr)
-			golden.Assert(t, "../../testdata/check/"+name+".diag.json", stdout.Bytes())
+			cases[strings.TrimSuffix(ent.Name(), ".vibe")] = map[string][]byte{ent.Name(): data}
+		}
+	}
+	return cases
+}
 
-			var r result
-			if err := json.Unmarshal(stdout.Bytes(), &r); err != nil {
-				t.Fatalf("output is not one JSON object: %v", err)
-			}
+// runCheck runs "vibe check --json" on a project made of files.
+func runCheck(t *testing.T, files map[string][]byte) (result, []byte, int) {
+	t.Helper()
+	dir := t.TempDir()
+	for name, data := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var stdout, stderr bytes.Buffer
+	code := Check(context.Background(), dir, true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil {
+		t.Fatalf("output is not one JSON object: %v\n%s", err, stdout.String())
+	}
+	return r, stdout.Bytes(), code
+}
+
+// TestCheckGolden runs "vibe check --json" on each case in testdata/check
+// and compares the output with its .diag.json file.
+func TestCheckGolden(t *testing.T) {
+	cases := checkCases(t)
+	if len(cases) < 20 {
+		t.Fatalf("want at least 20 check cases, found %d", len(cases))
+	}
+	for name, files := range cases {
+		t.Run(name, func(t *testing.T) {
+			r, out, code := runCheck(t, files)
+			golden.Assert(t, "../../testdata/check/"+name+".diag.json", out)
 			if code != ExitFailure || r.OK || len(r.Diagnostics) == 0 {
 				t.Fatalf("exit %d, ok %v, %d diagnostics; want a failure", code, r.OK, len(r.Diagnostics))
 			}
 			for _, d := range r.Diagnostics {
-				if !strings.HasPrefix(string(d.Code), "V1") || d.Range.Start.Line < 1 || d.File == "" {
-					t.Errorf("not a located V1xx diagnostic: %v", d)
+				if d.Range.Start.Line < 1 || d.Message == "" {
+					t.Errorf("diagnostic without location or message: %v", d)
 				}
 			}
 		})
 	}
+}
+
+// TestCodesHaveCases checks that every diagnostic code that the front
+// end reports has a check case that triggers it.
+func TestCodesHaveCases(t *testing.T) {
+	seen := map[diag.Code]bool{}
+	for name := range checkCases(t) {
+		data, err := os.ReadFile("../../testdata/check/" + name + ".diag.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+		var r result
+		if err := json.Unmarshal(data, &r); err != nil {
+			t.Fatal(err)
+		}
+		for _, d := range r.Diagnostics {
+			seen[d.Code] = true
+		}
+	}
+	for _, info := range diag.All() {
+		if !seen[info.Code] {
+			t.Errorf("%s (%s) has no case in testdata/check", info.Code, info.Title)
+		}
+	}
+}
+
+// TestFixesWork applies each fix of each check case and checks that the
+// diagnostic is gone and that no new syntax error appeared.
+func TestFixesWork(t *testing.T) {
+	for name, files := range checkCases(t) {
+		before, _, _ := runCheck(t, files)
+		for i, d := range before.Diagnostics {
+			for j, fix := range d.Fixes {
+				t.Run(fmt.Sprintf("%s/%d/%d", name, i, j), func(t *testing.T) {
+					fixed := map[string][]byte{}
+					for n, data := range files {
+						fixed[n] = data
+					}
+					fixed[d.File] = applyEdits(t, files[d.File], fix.Edits)
+					after, _, _ := runCheck(t, fixed)
+					for _, a := range after.Diagnostics {
+						if a.Code == d.Code && a.Message == d.Message {
+							t.Errorf("fix %q did not remove %s: %s\n%s", fix.Title, d.Code, d.Message, fixed[d.File])
+						}
+					}
+					if syntaxErrors(after) > syntaxErrors(before) {
+						t.Errorf("fix %q added a syntax error: %v\n%s", fix.Title, after.Diagnostics, fixed[d.File])
+					}
+				})
+			}
+		}
+	}
+}
+
+func syntaxErrors(r result) int {
+	n := 0
+	for _, d := range r.Diagnostics {
+		if strings.HasPrefix(string(d.Code), "V1") {
+			n++
+		}
+	}
+	return n
+}
+
+// applyEdits applies edits whose ranges count lines and code points.
+func applyEdits(t *testing.T, src []byte, edits []diag.Edit) []byte {
+	t.Helper()
+	offset := func(p diag.Position) int {
+		line, col, off := 1, 1, 0
+		for _, r := range string(src) {
+			if line == p.Line && col == p.Col {
+				return off
+			}
+			if r == '\n' {
+				line, col = line+1, 1
+			} else {
+				col++
+			}
+			off += utf8.RuneLen(r)
+		}
+		return off
+	}
+	sorted := slices.Clone(edits)
+	slices.SortFunc(sorted, func(a, b diag.Edit) int { return offset(b.Range.Start) - offset(a.Range.Start) })
+	out := string(src)
+	for _, e := range sorted {
+		start, end := offset(e.Range.Start), offset(e.Range.End)
+		out = out[:start] + e.NewText + out[end:]
+	}
+	return []byte(out)
 }
 
 func makeProject(t *testing.T, files map[string]string) string {
@@ -157,5 +292,80 @@ func TestFmtExamples(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if code := Fmt(context.Background(), "../../examples/library", true, false, &stdout, &stderr); code != ExitOK {
 		t.Errorf("examples/library is not formatted: %s%s", stdout.String(), stderr.String())
+	}
+}
+
+func TestRoutesGolden(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := Routes(context.Background(), "../../examples/library", false, &stdout, &stderr); code != ExitOK {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	golden.Assert(t, "testdata/library.routes.golden", stdout.Bytes())
+	stdout.Reset()
+	if code := Routes(context.Background(), "../../examples/library", true, &stdout, &stderr); code != ExitOK {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	golden.Assert(t, "testdata/library.routes.json", stdout.Bytes())
+}
+
+func TestRoutesWithErrors(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "model Book {\n  title: Text\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Routes(context.Background(), dir, true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil || code != ExitFailure || r.OK || r.Routes != nil {
+		t.Errorf("exit %d, %+v, %v", code, r, err)
+	}
+}
+
+func TestExplain(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := Explain("v201", false, &stdout, &stderr); code != ExitOK || !strings.HasPrefix(stdout.String(), "V201: unknown field\n") || !strings.Contains(stdout.String(), "Before:") {
+		t.Errorf("explain v201: %d %q", code, stdout.String())
+	}
+	stdout.Reset()
+	if code := Explain("V999", true, &stdout, &stderr); code != ExitFailure || !strings.Contains(stdout.String(), `"ok": false`) {
+		t.Errorf("explain V999: %d %q", code, stdout.String())
+	}
+	for _, info := range diag.All() {
+		stdout.Reset()
+		if code := Explain(string(info.Code), true, &stdout, &stderr); code != ExitOK {
+			t.Errorf("explain %s: exit %d", info.Code, code)
+		}
+	}
+}
+
+// TestCheckSpeed checks the spec's target: vibe check on 5,000 lines in
+// under 100 ms. It runs the reference app copied into many files.
+func TestCheckSpeed(t *testing.T) {
+	if testing.Short() || raceEnabled {
+		t.Skip("timing needs a normal build")
+	}
+	src, err := os.ReadFile("../../examples/library/main.vibe")
+	if err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{"main.vibe": string(src)}
+	lines := strings.Count(string(src), "\n")
+	body := string(src[strings.Index(string(src), "model Book"):])
+	for i := 0; lines < 5000; i++ {
+		n := fmt.Sprint(i)
+		renamed := strings.NewReplacer("model Book", "model Book"+n, "feature Books", "feature Books"+n,
+			"Book.", "Book"+n+".", "crud Book at /books", "crud Book"+n+" at /books"+n,
+			"/books/", "/books"+n+"/", "/books (", "/books"+n+" (").Replace(body)
+		files["f"+n+".vibe"] = renamed
+		lines += strings.Count(renamed, "\n")
+	}
+	dir := makeProject(t, files)
+	var stdout, stderr bytes.Buffer
+	start := time.Now()
+	code := Check(context.Background(), dir, true, &stdout, &stderr)
+	elapsed := time.Since(start)
+	if code != ExitOK {
+		t.Fatalf("the generated project does not check: %s", stdout.String())
+	}
+	t.Logf("%d lines in %d files checked in %v", lines, len(files), elapsed)
+	if elapsed > 100*time.Millisecond {
+		t.Errorf("vibe check took %v for %d lines, want under 100ms", elapsed, lines)
 	}
 }

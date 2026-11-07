@@ -1,0 +1,9 @@
+app Shop {}
+
+model Member {
+  username: Text
+}
+
+feature Members {
+  crud Member at /members/{username}
+}

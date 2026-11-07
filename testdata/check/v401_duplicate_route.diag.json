@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V401",
+      "severity": "error",
+      "message": "route GET /books/{slug} is declared twice: by crud Book at v401_duplicate_route.vibe:19 and at v401_duplicate_route.vibe:21",
+      "file": "v401_duplicate_route.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 3
+        },
+        "end": {
+          "line": 21,
+          "col": 33
+        }
+      },
+      "snippet": "  get /books/{slug} = Book.all()",
+      "fixes": [],
+      "help": "vibe explain V401"
+    },
+    {
+      "code": "V401",
+      "severity": "error",
+      "message": "route GET /healthz is declared twice: by the built-in health check and at v401_duplicate_route.vibe:23",
+      "file": "v401_duplicate_route.vibe",
+      "range": {
+        "start": {
+          "line": 23,
+          "col": 3
+        },
+        "end": {
+          "line": 23,
+          "col": 22
+        }
+      },
+      "snippet": "  get /healthz = \"ok\"",
+      "fixes": [],
+      "help": "vibe explain V401"
+    }
+  ]
+}

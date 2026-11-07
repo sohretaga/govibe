@@ -1,0 +1,13 @@
+app Shop {}
+
+auth User
+
+auth Admin
+
+model User {
+  email: Email unique
+}
+
+model Admin {
+  email: Email unique
+}

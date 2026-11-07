@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: cannot use / on Money and Int: money is added to or subtracted from money, and multiplied by an Int; dividing money belongs in an extern fn",
+      "file": "v301_money_division.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 26
+        },
+        "end": {
+          "line": 19,
+          "col": 49
+        }
+      },
+      "snippet": "  get /books/{id}/half = Book.find(id).price / 2",
+      "fixes": [],
+      "help": "vibe explain V301"
+    }
+  ]
+}

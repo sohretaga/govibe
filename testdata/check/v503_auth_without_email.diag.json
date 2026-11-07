@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V503",
+      "severity": "error",
+      "message": "auth model User needs the field 'email: Email unique': email is not unique",
+      "file": "v503_auth_without_email.vibe",
+      "range": {
+        "start": {
+          "line": 7,
+          "col": 3
+        },
+        "end": {
+          "line": 7,
+          "col": 8
+        }
+      },
+      "snippet": "  email: Email",
+      "fixes": [
+        {
+          "title": "Add unique",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 7,
+                  "col": 15
+                },
+                "end": {
+                  "line": 7,
+                  "col": 15
+                }
+              },
+              "new_text": " unique"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V503"
+    }
+  ]
+}

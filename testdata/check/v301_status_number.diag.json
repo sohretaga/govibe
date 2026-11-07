@@ -1,0 +1,81 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: a status is compared by name: write ok, not 200",
+      "file": "v301_status_number.vibe",
+      "range": {
+        "start": {
+          "line": 20,
+          "col": 37
+        },
+        "end": {
+          "line": 20,
+          "col": 40
+        }
+      },
+      "snippet": "    expect (get /books/x).status == 200",
+      "fixes": [
+        {
+          "title": "Use 'ok'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 20,
+                  "col": 37
+                },
+                "end": {
+                  "line": 20,
+                  "col": 40
+                }
+              },
+              "new_text": "ok"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V301"
+    },
+    {
+      "code": "V202",
+      "severity": "error",
+      "message": "unknown name 'crated'; a status is one of ok, created, empty, bad_request, login_required, forbidden, not_found, conflict, invalid, rate_limited, internal",
+      "file": "v301_status_number.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 37
+        },
+        "end": {
+          "line": 21,
+          "col": 43
+        }
+      },
+      "snippet": "    expect (get /books/x).status == crated",
+      "fixes": [
+        {
+          "title": "Use 'created'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 21,
+                  "col": 37
+                },
+                "end": {
+                  "line": 21,
+                  "col": 43
+                }
+              },
+              "new_text": "created"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V202"
+    }
+  ]
+}

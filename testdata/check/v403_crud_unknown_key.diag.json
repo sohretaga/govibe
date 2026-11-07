@@ -1,0 +1,62 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V403",
+      "severity": "error",
+      "message": "crud Post cannot use path parameter {slugg}: Post has no field 'slugg'",
+      "file": "v403_crud_unknown_key.vibe",
+      "range": {
+        "start": {
+          "line": 13,
+          "col": 23
+        },
+        "end": {
+          "line": 13,
+          "col": 30
+        }
+      },
+      "snippet": "  crud Post at /posts/{slugg}",
+      "fixes": [
+        {
+          "title": "Use {slug}",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 13,
+                  "col": 24
+                },
+                "end": {
+                  "line": 13,
+                  "col": 29
+                }
+              },
+              "new_text": "slug"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V403"
+    },
+    {
+      "code": "V403",
+      "severity": "error",
+      "message": "crud Comment cannot use path parameter {post_id}: it is not the last segment; crud fills only the lookup key at the end",
+      "file": "v403_crud_unknown_key.vibe",
+      "range": {
+        "start": {
+          "line": 15,
+          "col": 26
+        },
+        "end": {
+          "line": 15,
+          "col": 35
+        }
+      },
+      "snippet": "  crud Comment at /posts/{post_id}/comments",
+      "fixes": [],
+      "help": "vibe explain V403"
+    }
+  ]
+}

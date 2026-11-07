@@ -1,0 +1,5 @@
+app Shop {}
+
+model Book {
+  title: Text
+}

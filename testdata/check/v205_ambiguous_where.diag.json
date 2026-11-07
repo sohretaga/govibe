@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V205",
+      "severity": "error",
+      "message": "'title' in the where of Book is both a field and a local name; rename the local",
+      "file": "v205_ambiguous_where.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 42
+        },
+        "end": {
+          "line": 19,
+          "col": 47
+        }
+      },
+      "snippet": "  get /books (title: Text?) = Book.where(title contains title)",
+      "fixes": [],
+      "help": "vibe explain V205"
+    },
+    {
+      "code": "V205",
+      "severity": "error",
+      "message": "'title' in the where of Book is both a field and a local name; rename the local",
+      "file": "v205_ambiguous_where.vibe",
+      "range": {
+        "start": {
+          "line": 19,
+          "col": 57
+        },
+        "end": {
+          "line": 19,
+          "col": 62
+        }
+      },
+      "snippet": "  get /books (title: Text?) = Book.where(title contains title)",
+      "fixes": [],
+      "help": "vibe explain V205"
+    }
+  ]
+}

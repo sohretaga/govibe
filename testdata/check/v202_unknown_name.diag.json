@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V202",
+      "severity": "error",
+      "message": "unknown name 'bok'",
+      "file": "v202_unknown_name.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 12
+        },
+        "end": {
+          "line": 21,
+          "col": 15
+        }
+      },
+      "snippet": "    return bok.update(published: true)",
+      "fixes": [
+        {
+          "title": "Did you mean 'book'?",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 21,
+                  "col": 12
+                },
+                "end": {
+                  "line": 21,
+                  "col": 15
+                }
+              },
+              "new_text": "book"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V202"
+    }
+  ]
+}

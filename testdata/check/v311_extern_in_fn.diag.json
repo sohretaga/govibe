@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V311",
+      "severity": "error",
+      "message": "fn pay cannot call extern fn charge_card: an extern may have effects",
+      "file": "v311_extern_in_fn.vibe",
+      "range": {
+        "start": {
+          "line": 6,
+          "col": 10
+        },
+        "end": {
+          "line": 6,
+          "col": 36
+        }
+      },
+      "snippet": "  return charge_card(amount, \"tok\")",
+      "fixes": [],
+      "help": "vibe explain V311"
+    }
+  ]
+}

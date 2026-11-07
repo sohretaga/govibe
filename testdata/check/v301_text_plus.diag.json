@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: text is joined with interpolation, not +",
+      "file": "v301_text_plus.vibe",
+      "range": {
+        "start": {
+          "line": 4,
+          "col": 10
+        },
+        "end": {
+          "line": 4,
+          "col": 32
+        }
+      },
+      "snippet": "  return \"Total: \" + str(total)",
+      "fixes": [
+        {
+          "title": "Use \"Total: {str(total)}\"",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 4,
+                  "col": 10
+                },
+                "end": {
+                  "line": 4,
+                  "col": 32
+                }
+              },
+              "new_text": "\"Total: {str(total)}\""
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V301"
+    }
+  ]
+}

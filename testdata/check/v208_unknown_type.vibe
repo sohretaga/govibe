@@ -1,0 +1,5 @@
+app Shop {}
+
+fn total(n: Integer, m: Int) -> Int {
+  return m
+}

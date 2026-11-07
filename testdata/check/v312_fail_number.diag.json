@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V312",
+      "severity": "error",
+      "message": "fail takes a status name, not the number 409; write conflict",
+      "file": "v312_fail_number.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 30
+        },
+        "end": {
+          "line": 21,
+          "col": 33
+        }
+      },
+      "snippet": "    if book.published { fail 409 \"already published\" }",
+      "fixes": [
+        {
+          "title": "Use 'conflict'",
+          "edits": [
+            {
+              "range": {
+                "start": {
+                  "line": 21,
+                  "col": 30
+                },
+                "end": {
+                  "line": 21,
+                  "col": 33
+                }
+              },
+              "new_text": "conflict"
+            }
+          ]
+        }
+      ],
+      "help": "vibe explain V312"
+    }
+  ]
+}

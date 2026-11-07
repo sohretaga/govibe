@@ -1,0 +1,6 @@
+app Shop {}
+
+model Post {
+  pages: Int
+  slug: Slug(pages)
+}

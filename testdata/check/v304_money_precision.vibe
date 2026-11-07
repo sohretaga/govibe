@@ -1,0 +1,5 @@
+app Shop {}
+
+model Book {
+  price: Money min 0.005
+}

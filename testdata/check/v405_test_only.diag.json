@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V405",
+      "severity": "error",
+      "message": "expect is only allowed in a test",
+      "file": "v405_test_only.vibe",
+      "range": {
+        "start": {
+          "line": 21,
+          "col": 5
+        },
+        "end": {
+          "line": 21,
+          "col": 26
+        }
+      },
+      "snippet": "    expect book.pages > 0",
+      "fixes": [],
+      "help": "vibe explain V405"
+    },
+    {
+      "code": "V405",
+      "severity": "error",
+      "message": "login_as is only allowed in a test",
+      "file": "v405_test_only.vibe",
+      "range": {
+        "start": {
+          "line": 22,
+          "col": 5
+        },
+        "end": {
+          "line": 22,
+          "col": 17
+        }
+      },
+      "snippet": "    login_as(me)",
+      "fixes": [],
+      "help": "vibe explain V405"
+    }
+  ]
+}

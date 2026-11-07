@@ -1,0 +1,43 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V209",
+      "severity": "error",
+      "message": "a model cannot be named 'Text': it is a built-in type",
+      "file": "v209_reserved_name.vibe",
+      "range": {
+        "start": {
+          "line": 3,
+          "col": 7
+        },
+        "end": {
+          "line": 3,
+          "col": 11
+        }
+      },
+      "snippet": "model Text {",
+      "fixes": [],
+      "help": "vibe explain V209"
+    },
+    {
+      "code": "V209",
+      "severity": "error",
+      "message": "a function cannot be named 'len': it is a built-in function",
+      "file": "v209_reserved_name.vibe",
+      "range": {
+        "start": {
+          "line": 7,
+          "col": 4
+        },
+        "end": {
+          "line": 7,
+          "col": 7
+        }
+      },
+      "snippet": "fn len(x: Int) -> Int {",
+      "fixes": [],
+      "help": "vibe explain V209"
+    }
+  ]
+}

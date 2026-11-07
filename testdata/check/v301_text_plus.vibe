@@ -1,0 +1,5 @@
+app Shop {}
+
+fn label(total: Money) -> Text {
+  return "Total: " + str(total)
+}

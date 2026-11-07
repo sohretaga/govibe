@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "diagnostics": [
+    {
+      "code": "V301",
+      "severity": "error",
+      "message": "type mismatch: a condition must be Bool, not Int",
+      "file": "v301_condition.vibe",
+      "range": {
+        "start": {
+          "line": 4,
+          "col": 6
+        },
+        "end": {
+          "line": 4,
+          "col": 7
+        }
+      },
+      "snippet": "  if n { return 1 }",
+      "fixes": [],
+      "help": "vibe explain V301"
+    }
+  ]
+}

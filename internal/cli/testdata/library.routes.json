@@ -1,0 +1,261 @@
+{
+  "ok": true,
+  "diagnostics": [],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "params": [
+        {
+          "name": "email",
+          "type": "Email",
+          "in": "body"
+        },
+        {
+          "name": "password",
+          "type": "Text",
+          "in": "body"
+        },
+        {
+          "name": "name",
+          "type": "Text",
+          "in": "body"
+        }
+      ],
+      "result": "User",
+      "status": "created",
+      "login": false,
+      "origin": "auth register",
+      "file": "main.vibe",
+      "line": 5
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "params": [
+        {
+          "name": "email",
+          "type": "Email",
+          "in": "body"
+        },
+        {
+          "name": "password",
+          "type": "Text",
+          "in": "body"
+        }
+      ],
+      "result": "User",
+      "status": "ok",
+      "login": false,
+      "origin": "auth login",
+      "file": "main.vibe",
+      "line": 5
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "params": [],
+      "result": "empty",
+      "status": "empty",
+      "login": false,
+      "origin": "auth logout",
+      "file": "main.vibe",
+      "line": 5
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "params": [],
+      "result": "User",
+      "status": "ok",
+      "login": true,
+      "origin": "auth me",
+      "file": "main.vibe",
+      "line": 5
+    },
+    {
+      "method": "GET",
+      "path": "/books",
+      "params": [
+        {
+          "name": "limit",
+          "type": "Int",
+          "in": "query",
+          "default": "50"
+        },
+        {
+          "name": "offset",
+          "type": "Int",
+          "in": "query",
+          "default": "0"
+        }
+      ],
+      "result": "[Book]",
+      "status": "ok",
+      "login": false,
+      "origin": "crud Book list",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 21
+    },
+    {
+      "method": "GET",
+      "path": "/books/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "ID",
+          "in": "path"
+        }
+      ],
+      "result": "Book",
+      "status": "ok",
+      "login": false,
+      "origin": "crud Book get",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 21
+    },
+    {
+      "method": "POST",
+      "path": "/books",
+      "params": [
+        {
+          "name": "title",
+          "type": "Text",
+          "in": "body"
+        },
+        {
+          "name": "pages",
+          "type": "Int",
+          "in": "body"
+        },
+        {
+          "name": "price",
+          "type": "Money",
+          "in": "body"
+        },
+        {
+          "name": "published",
+          "type": "Bool?",
+          "in": "body",
+          "default": "false"
+        }
+      ],
+      "result": "Book",
+      "status": "created",
+      "login": true,
+      "origin": "crud Book create",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 21
+    },
+    {
+      "method": "PATCH",
+      "path": "/books/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "ID",
+          "in": "path"
+        },
+        {
+          "name": "title",
+          "type": "Text?",
+          "in": "body"
+        },
+        {
+          "name": "pages",
+          "type": "Int?",
+          "in": "body"
+        },
+        {
+          "name": "price",
+          "type": "Money?",
+          "in": "body"
+        },
+        {
+          "name": "published",
+          "type": "Bool?",
+          "in": "body"
+        }
+      ],
+      "result": "Book",
+      "status": "ok",
+      "login": true,
+      "origin": "crud Book update",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 21
+    },
+    {
+      "method": "DELETE",
+      "path": "/books/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "ID",
+          "in": "path"
+        }
+      ],
+      "result": "empty",
+      "status": "empty",
+      "login": true,
+      "origin": "crud Book delete",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 21
+    },
+    {
+      "method": "GET",
+      "path": "/books/search",
+      "params": [
+        {
+          "name": "q",
+          "type": "Text?",
+          "in": "query"
+        },
+        {
+          "name": "limit",
+          "type": "Int",
+          "in": "query",
+          "default": "20"
+        }
+      ],
+      "result": "[Book]",
+      "status": "ok",
+      "login": false,
+      "origin": "route",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 23
+    },
+    {
+      "method": "POST",
+      "path": "/books/{id}/publish",
+      "params": [
+        {
+          "name": "id",
+          "type": "ID",
+          "in": "path"
+        }
+      ],
+      "result": "Book",
+      "status": "ok",
+      "login": true,
+      "origin": "route",
+      "feature": "Books",
+      "file": "main.vibe",
+      "line": 25
+    },
+    {
+      "method": "GET",
+      "path": "/healthz",
+      "params": [],
+      "result": "Json",
+      "status": "ok",
+      "login": false,
+      "origin": "builtin"
+    }
+  ]
+}

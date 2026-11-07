@@ -1,0 +1,16 @@
+app Shop {}
+
+auth User
+
+model User {
+  email: Email unique
+}
+
+model Book {
+  title: Text
+  seller: Text
+}
+
+feature Books {
+  crud Book at /books owner seller
+}

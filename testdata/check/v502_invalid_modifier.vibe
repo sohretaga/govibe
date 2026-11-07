@@ -1,0 +1,8 @@
+app Shop {}
+
+model Post {
+  title: Text
+  published: Bool min 0
+  slug: Slug(title) = "x"
+  pages: Int min 1.5
+}

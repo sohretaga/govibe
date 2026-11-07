@@ -22,6 +22,10 @@ const (
 type Param struct {
 	Expr ir.Expr
 	Use  Use
+	// Want is the type the value is bound as: the type of the field it is
+	// compared with, Bool for a condition, Int for a limit or offset. It
+	// matters for a dynamic JSON value in a test.
+	Want *ir.Type
 }
 
 // Plan is a static statement and the values it binds.
@@ -82,11 +86,11 @@ func Select(q *ir.QueryExpr) Plan {
 	case ir.First:
 		limit := "1"
 		if q.Limit != nil {
-			limit = "min(" + b.param(q.Limit, Limit) + ", 1)"
+			limit = "min(" + b.param(q.Limit, Limit, ir.Basic(ir.Int)) + ", 1)"
 		}
 		sql = "SELECT " + columnList(q.Model) + " FROM " + t + where + order(q.Orders) + " LIMIT " + limit
 		if q.Offset != nil {
-			sql += " OFFSET " + b.param(q.Offset, Offset)
+			sql += " OFFSET " + b.param(q.Offset, Offset, ir.Basic(ir.Int))
 		}
 	default:
 		sql = "SELECT " + columnList(q.Model) + " FROM " + t + where + order(q.Orders) + b.window(q, strconv.Itoa(maxRows))
@@ -99,11 +103,11 @@ func Select(q *ir.QueryExpr) Plan {
 func (b *builder) window(q *ir.QueryExpr, def string) string {
 	limit := def
 	if q.Limit != nil {
-		limit = b.param(q.Limit, Limit)
+		limit = b.param(q.Limit, Limit, ir.Basic(ir.Int))
 	}
 	s := " LIMIT " + limit
 	if q.Offset != nil {
-		s += " OFFSET " + b.param(q.Offset, Offset)
+		s += " OFFSET " + b.param(q.Offset, Offset, ir.Basic(ir.Int))
 	}
 	return s
 }
@@ -195,7 +199,7 @@ type builder struct {
 
 // param returns the SQL of a value: a literal for a constant, which a
 // limit or offset clamps here, and a new parameter otherwise.
-func (b *builder) param(e ir.Expr, use Use) string {
+func (b *builder) param(e ir.Expr, use Use, want *ir.Type) string {
 	if k, ok := e.(*ir.Const); ok && k.Value != nil {
 		if n, ok := k.Value.(int64); ok {
 			switch use {
@@ -207,7 +211,7 @@ func (b *builder) param(e ir.Expr, use Use) string {
 		}
 		return Literal(k)
 	}
-	b.params = append(b.params, Param{Expr: e, Use: use})
+	b.params = append(b.params, Param{Expr: e, Use: use, Want: want})
 	return "?" + strconv.Itoa(len(b.params))
 }
 
@@ -257,7 +261,7 @@ func both(x, y cond) string {
 
 func (b *builder) cond(e ir.Expr) cond {
 	if !hasColumn(e) {
-		return cond{Value: b.param(e, Value)}
+		return cond{Value: b.param(e, Value, ir.Basic(ir.Bool))}
 	}
 	switch e := e.(type) {
 	case *ir.Column:
@@ -290,9 +294,9 @@ func (b *builder) compare(e *ir.Binary) cond {
 		if e.Op == "!=" {
 			test = " IS NOT NULL"
 		}
-		return cond{Value: b.operand(col) + test}
+		return cond{Value: b.operand(col, nil) + test}
 	}
-	x, y := b.operand(e.X), b.operand(e.Y)
+	x, y := b.operand(e.X, e.Y), b.operand(e.Y, e.X)
 	var c cond
 	switch e.Op {
 	case "contains":
@@ -316,11 +320,19 @@ func (b *builder) compare(e *ir.Binary) cond {
 	return c
 }
 
-func (b *builder) operand(e ir.Expr) string {
+// operand returns the SQL of one side of a comparison with other.
+func (b *builder) operand(e, other ir.Expr) string {
 	if c, ok := e.(*ir.Column); ok {
 		return ident(c.Field.Column)
 	}
-	return b.param(e, Value)
+	want := e.Type()
+	if c, ok := other.(*ir.Column); ok {
+		want = c.Field.Type
+		if want.Kind == ir.Optional {
+			want = want.Elem
+		}
+	}
+	return b.param(e, Value, want)
 }
 
 // nullable reports whether e is a column of an optional field or an

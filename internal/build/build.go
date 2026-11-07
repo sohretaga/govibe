@@ -49,31 +49,9 @@ type Options struct {
 // Output. Problems the user can act on, such as a missing toolchain or a
 // failed compile, are diagnostics; other failures are errors.
 func Build(ctx context.Context, prog *ir.Program, opts Options) ([]diag.Diagnostic, error) {
-	goCmd := opts.Go
-	if goCmd == "" {
-		path, err := exec.LookPath("go")
-		if err != nil {
-			return []diag.Diagnostic{global(diag.V901, "the go command was not found on the PATH; install Go 1.26 or newer from https://go.dev/dl")}, nil
-		}
-		goCmd = path
-	}
-	files, err := gogen.Generate(prog)
-	if err != nil {
-		return nil, err
-	}
-	ext, diags, err := externFiles(opts.Root, prog)
-	if err != nil {
-		return nil, err
-	}
-	if len(diags) > 0 {
-		return diag.Truncate(diags), nil
-	}
-	for name, data := range ext {
-		files[name] = data
-	}
-	dir := filepath.Join(opts.Root, filepath.FromSlash(Dir))
-	if err := Write(dir, files); err != nil {
-		return nil, err
+	m, diags, err := Prepare(prog, opts)
+	if m == nil || err != nil {
+		return diags, err
 	}
 	out := opts.Output
 	if !filepath.IsAbs(out) {
@@ -83,19 +61,71 @@ func Build(ctx context.Context, prog *ir.Program, opts Options) ([]diag.Diagnost
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.CommandContext(ctx, goCmd, "build", "-trimpath", "-o", out, ".")
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOWORK=off", "GOFLAGS=-mod=readonly")
-	var output bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &output, &output
-	if err := cmd.Run(); err != nil {
+	stdout, stderr, err := m.Run(ctx, "build", "-trimpath", "-o", out, ".")
+	if err != nil {
 		var exit *exec.ExitError
 		if !errors.As(err, &exit) {
-			return nil, fmt.Errorf("run %s build: %w", goCmd, err)
+			return nil, err
 		}
-		return mapErrors(opts.Root, prog, output.String()), nil
+		return MapErrors(opts.Root, prog, string(stdout)+string(stderr)), nil
 	}
 	return nil, nil
+}
+
+// Module is a generated Go module, ready for go build or go test.
+type Module struct {
+	Dir string // the build directory
+	Go  string // the go command
+}
+
+// Prepare finds the go command and writes the Go module of prog, its
+// tests included, to Root/.vibe/build. It returns a nil Module with the
+// diagnostics when the user must act first.
+func Prepare(prog *ir.Program, opts Options) (*Module, []diag.Diagnostic, error) {
+	goCmd := opts.Go
+	if goCmd == "" {
+		path, err := exec.LookPath("go")
+		if err != nil {
+			return nil, []diag.Diagnostic{global(diag.V901, "the go command was not found on the PATH; install Go 1.26 or newer from https://go.dev/dl")}, nil
+		}
+		goCmd = path
+	}
+	files, err := gogen.Generate(prog)
+	if err != nil {
+		return nil, nil, err
+	}
+	ext, diags, err := externFiles(opts.Root, prog)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(diags) > 0 {
+		return nil, diag.Truncate(diags), nil
+	}
+	for name, data := range ext {
+		files[name] = data
+	}
+	dir := filepath.Join(opts.Root, filepath.FromSlash(Dir))
+	if err := Write(dir, files); err != nil {
+		return nil, nil, err
+	}
+	return &Module{Dir: dir, Go: goCmd}, nil, nil
+}
+
+// Run runs the go command with args in the module and returns what it
+// printed. Builds are static and use only the fixed go.mod and go.sum. A
+// command that ran and failed returns an *exec.ExitError.
+func (m *Module) Run(ctx context.Context, args ...string) (stdout, stderr []byte, err error) {
+	cmd := exec.CommandContext(ctx, m.Go, args...)
+	cmd.Dir = m.Dir
+	cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOWORK=off", "GOFLAGS=-mod=readonly")
+	var out, errOut bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &errOut
+	err = cmd.Run()
+	var exit *exec.ExitError
+	if err != nil && !errors.As(err, &exit) {
+		return nil, nil, fmt.Errorf("run %s %s: %w", m.Go, args[0], err)
+	}
+	return out.Bytes(), errOut.Bytes(), err
 }
 
 // Write replaces dir with a Go module holding files, the runtime package
@@ -137,10 +167,10 @@ func Write(dir string, files map[string][]byte) error {
 // errorLine matches a compiler error: file:line:col: message.
 var errorLine = regexp.MustCompile(`^(\S+?\.(?:go|vibe)):(\d+):(\d+): (.*)$`)
 
-// mapErrors turns go build output into V902 diagnostics. An error in a
+// MapErrors turns go build output into V902 diagnostics. An error in a
 // .vibe file keeps its location; one in generated code points at the file
 // in the build directory.
-func mapErrors(root string, prog *ir.Program, output string) []diag.Diagnostic {
+func MapErrors(root string, prog *ir.Program, output string) []diag.Diagnostic {
 	var out []diag.Diagnostic
 	var raw []string
 	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {

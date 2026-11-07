@@ -22,7 +22,35 @@ func (f *body) block(b *ir.Block) {
 	}
 }
 
+// stmtPos returns where a statement starts in its .vibe file.
+func stmtPos(s ir.Stmt) ir.Pos {
+	switch s := s.(type) {
+	case *ir.Let:
+		return s.Value.Position()
+	case *ir.If:
+		return s.Cond.Position()
+	case *ir.Return:
+		return s.Pos
+	case *ir.Fail:
+		return s.Pos
+	case *ir.Expect:
+		return s.Pos
+	case *ir.ExprStmt:
+		return s.X.Position()
+	}
+	return ir.Pos{}
+}
+
+// stmt writes a statement between marks that map its Go code to its
+// .vibe line.
 func (f *body) stmt(s ir.Stmt) {
+	p := stmtPos(s)
+	f.mark(p)
+	f.stmtCode(s)
+	f.unmark(p)
+}
+
+func (f *body) stmtCode(s ir.Stmt) {
 	switch s := s.(type) {
 	case *ir.Block:
 		f.line("{")

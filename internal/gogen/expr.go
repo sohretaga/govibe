@@ -179,6 +179,14 @@ func (f *body) expr(e ir.Expr) string {
 		for i, a := range e.Args {
 			args[i] = f.value(a, e.Func.Params[i].Type)
 		}
+		if e.Func.Extern {
+			// An extern may fail; its error answers internal, or the
+			// status of a vibe.Fail.
+			t := f.temp()
+			f.line("%s, err := %s(%s)", t, externName(e.Func), strings.Join(append([]string{"c.Context()"}, args...), ", "))
+			f.failOn()
+			return t
+		}
 		return fnName(e.Func) + "(" + strings.Join(args, ", ") + ")"
 	case *ir.Builtin:
 		return f.builtin(e)
@@ -197,7 +205,7 @@ func (f *body) expr(e ir.Expr) string {
 		f.line("if err := delete%s(c, %s); err != nil {\nreturn err\n}", e.X.Type().Model.Name, f.expr(e.X))
 		return ""
 	case *ir.Me:
-		f.g.unsupported(e.Position(), "me")
+		return "me"
 	case *ir.Request, *ir.Member, *ir.StatusName:
 		f.g.unsupported(e.Position(), "requests outside tests")
 	}
@@ -432,7 +440,7 @@ func (f *body) add(e *ir.Add) string {
 	}
 	t, errs := f.temp(), f.temp()
 	f.line("var %s vibe.Errors", errs)
-	f.line("%s, err := insert%s(c, &%s{%s}, &%s)", t, m.Name, m.Name, strings.Join(inits, ", "), errs)
+	f.line("%s, err := insert%s(c, &model.%s{%s}, &%s)", t, m.Name, m.Name, strings.Join(inits, ", "), errs)
 	f.failOn()
 	return t
 }
@@ -457,3 +465,7 @@ func (f *body) update(e *ir.Update) string {
 // fnName returns the Go name of a fn; a feature's fn carries the feature
 // name, since two features may each have a fn of the same name.
 func fnName(fn *ir.Func) string { return "fn" + fn.Feature + pascal(fn.Name) }
+
+// externName returns the Go function of an extern fn in package ext:
+// charge_card is ext.ChargeCard.
+func externName(fn *ir.Func) string { return "ext." + pascal(fn.Name) }

@@ -18,7 +18,7 @@ func (g *gen) fns() string {
 	}
 	for _, fn := range all {
 		if fn.Extern {
-			g.unsupported(fn.Pos, "extern fn")
+			continue
 		}
 		f := newBody(g)
 		f.fn = fn
@@ -34,6 +34,24 @@ func (g *gen) fns() string {
 		}
 		fmt.Fprintf(&b, "\n// %s is %s, declared at %s.\nfunc %s(%s) %s {\n%s}\n",
 			fnName(fn), owner, where(fn.Pos), fnName(fn), strings.Join(params, ", "), goType(fn.Result), f.w.String())
+	}
+	return b.String()
+}
+
+// externs returns externs.go, which checks at compile time that every
+// extern fn has a Go function of the declared signature in go/. Line
+// directives put a mismatch at the extern fn line, as V903.
+func (g *gen) externs() string {
+	var b strings.Builder
+	b.WriteString(header)
+	for _, fn := range Externs(g.prog) {
+		params := []string{"context.Context"}
+		for _, p := range fn.Params {
+			params = append(params, goType(p.Type))
+		}
+		fmt.Fprintf(&b, "\n// %s must be func(%s) (%s, error).\nvar _ = []func(%s) (%s, error){\n%s%s\n%s,\n%s\n}\n",
+			externName(fn), strings.Join(params, ", "), goType(fn.Result), strings.Join(params, ", "), goType(fn.Result),
+			markAt, where(fn.Pos), externName(fn), markEnd)
 	}
 	return b.String()
 }
@@ -68,4 +86,33 @@ func (g *gen) main() string {
 		panic(err)
 	}
 	return b.String()
+}
+
+// Externs returns every extern fn of p, top-level ones first.
+func Externs(p *ir.Program) []*ir.Func {
+	var out []*ir.Func
+	for _, fn := range p.Funcs {
+		if fn.Extern {
+			out = append(out, fn)
+		}
+	}
+	for _, ft := range p.Features {
+		for _, fn := range ft.Funcs {
+			if fn.Extern {
+				out = append(out, fn)
+			}
+		}
+	}
+	return out
+}
+
+// ExternFunc returns the Go name of an extern fn in package ext and the
+// signature its Go function must have.
+func ExternFunc(fn *ir.Func) (name, signature string) {
+	params := []string{"ctx context.Context"}
+	for _, p := range fn.Params {
+		params = append(params, p.Name+" "+goType(p.Type))
+	}
+	name = strings.TrimPrefix(externName(fn), "ext.")
+	return name, "func " + name + "(" + strings.Join(params, ", ") + ") (" + goType(fn.Result) + ", error)"
 }

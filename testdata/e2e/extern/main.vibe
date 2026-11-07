@@ -1,0 +1,27 @@
+app Shop {}
+
+model Book {
+  title: Text
+  price: Money
+}
+
+extern fn charge_card(amount: Money, token: Text) -> Text
+
+extern fn describe(b: Book) -> Text
+
+fn ratio(a: Int, b: Int) -> Int {
+  return a / b
+}
+
+feature Shop {
+  crud Book at /books
+
+  post /pay (amount: Money, token: Text) = charge_card(amount, token)
+
+  get /books/{id}/describe = describe(Book.find(id))
+
+  get /ratio (a: Int, b: Int) {
+    let r = ratio(a, b)
+    return r
+  }
+}

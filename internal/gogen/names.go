@@ -29,6 +29,7 @@ func pascal(name string) string {
 var reserved = map[string]bool{
 	"c": true, "in": true, "err": true, "errs": true, "r": true, "now": true,
 	"vibe": true, "time": true, "strings": true, "errors": true, "os": true, "sqlite": true, "driver": true,
+	"model": true, "ext": true, "bcrypt": true, "context": true, "me": true,
 }
 
 var predeclared = map[string]bool{

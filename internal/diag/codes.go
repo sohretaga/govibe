@@ -51,6 +51,7 @@ const (
 
 	V901 Code = "V901"
 	V902 Code = "V902"
+	V903 Code = "V903"
 )
 
 // Info documents one diagnostic code for messages and "vibe explain".
@@ -484,6 +485,19 @@ generated file in .vibe/build when it cannot be traced back to a .vibe
 line.`,
 		Before: "$ vibe build\n.vibe/build/handlers.go:12:3: V902 go build failed: ...",
 		After:  "$ vibe check\n$ vibe build",
+	},
+	{
+		Code:     V903,
+		Title:    "extern signature mismatch",
+		Template: "extern fn %s: %s",
+		Explanation: `Every extern fn needs a Go function in a .go file in the project's go/
+folder, in package ext. Its name is the fn name in PascalCase, with id
+written ID; its first parameter is a context.Context, then one parameter
+per GoVibe parameter, and it returns the result and an error. Types
+map as in the built-in types table: Money is vibe.Money from
+vibeapp/runtime, and a model is *model.Name from vibeapp/model.`,
+		Before: "extern fn charge_card(amount: Money, token: Text) -> Text\n\n// go/pay.go\nfunc ChargeCard(amount float64) string",
+		After:  "extern fn charge_card(amount: Money, token: Text) -> Text\n\n// go/pay.go\nfunc ChargeCard(ctx context.Context, amount vibe.Money, token string) (string, error)",
 	},
 }
 

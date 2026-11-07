@@ -98,6 +98,18 @@ feature Kitchen {
     return label(it.name, it.qty, it.price, it.sold)
   }
 
+  post /bulk (tags: [Text], ns: [Int]?, item: Item, extra: Item?) {
+    if extra != none {
+      return "{len(tags)} tags, {item.name} and {extra.name}"
+    }
+    if ns != none {
+      return "{len(ns)} numbers"
+    }
+    return "{len(tags)} tags, {item.name} at {item.price}"
+  }
+
+  get /tagged (tag: [Text]) = len(tag)
+
   delete /items/{name}/purge {
     Item.find(name: name).delete()
   }

@@ -1,0 +1,38 @@
+app Notes {}
+
+auth User
+
+model User {
+  name: Text min 2
+  email: Email unique
+  bio: Text?
+}
+
+model Note {
+  text: Text min 1
+  author: Ref User
+  pinned: Bool = false
+}
+
+model Tag {
+  label: Text
+  maker: Ref User?
+}
+
+feature Notes {
+  crud Note at /notes owner author private
+
+  crud Tag at /tags owner maker
+
+  get /notes/mine/count = Note.where(author == me.id).count()
+
+  post /notes/{id}/pin {
+    let note = Note.find(id)
+    if note.author != me.id {
+      fail forbidden "not your note"
+    }
+    return note.update(pinned: true)
+  }
+
+  get /hello = "Hello, {me.name}!"
+}

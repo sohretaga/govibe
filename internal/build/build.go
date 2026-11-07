@@ -17,8 +17,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/sohretaga/govibe/internal/diag"
 	"github.com/sohretaga/govibe/internal/gogen"
@@ -59,6 +61,16 @@ func Build(ctx context.Context, prog *ir.Program, opts Options) ([]diag.Diagnost
 	if err != nil {
 		return nil, err
 	}
+	ext, diags, err := externFiles(opts.Root, prog)
+	if err != nil {
+		return nil, err
+	}
+	if len(diags) > 0 {
+		return diag.Truncate(diags), nil
+	}
+	for name, data := range ext {
+		files[name] = data
+	}
 	dir := filepath.Join(opts.Root, filepath.FromSlash(Dir))
 	if err := Write(dir, files); err != nil {
 		return nil, err
@@ -81,7 +93,7 @@ func Build(ctx context.Context, prog *ir.Program, opts Options) ([]diag.Diagnost
 		if !errors.As(err, &exit) {
 			return nil, fmt.Errorf("run %s build: %w", goCmd, err)
 		}
-		return mapErrors(opts.Root, output.String()), nil
+		return mapErrors(opts.Root, prog, output.String()), nil
 	}
 	return nil, nil
 }
@@ -128,7 +140,7 @@ var errorLine = regexp.MustCompile(`^(\S+?\.(?:go|vibe)):(\d+):(\d+): (.*)$`)
 // mapErrors turns go build output into V902 diagnostics. An error in a
 // .vibe file keeps its location; one in generated code points at the file
 // in the build directory.
-func mapErrors(root, output string) []diag.Diagnostic {
+func mapErrors(root string, prog *ir.Program, output string) []diag.Diagnostic {
 	var out []diag.Diagnostic
 	var raw []string
 	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
@@ -139,9 +151,13 @@ func mapErrors(root, output string) []diag.Diagnostic {
 			}
 			continue
 		}
-		file := filepath.ToSlash(m[1])
-		if strings.HasSuffix(file, ".go") && !strings.HasPrefix(file, Dir+"/") {
-			file = Dir + "/" + strings.TrimPrefix(file, "./")
+		file := strings.TrimPrefix(filepath.ToSlash(m[1]), "./")
+		switch {
+		case strings.HasPrefix(file, "ext/"):
+			// The Go files of extern fns come from go/.
+			file = GoDir + "/" + strings.TrimPrefix(file, "ext/")
+		case strings.HasSuffix(file, ".go") && !strings.HasPrefix(file, Dir+"/"):
+			file = Dir + "/" + file
 		}
 		ln, err1 := strconv.Atoi(m[2])
 		col, err2 := strconv.Atoi(m[3])
@@ -149,12 +165,24 @@ func mapErrors(root, output string) []diag.Diagnostic {
 			raw = append(raw, line)
 			continue
 		}
+		if fn := externAt(prog, file, ln); fn != nil {
+			name, sig := gogen.ExternFunc(fn)
+			d := global(diag.V903, fn.Name, fmt.Sprintf("the Go function %s in %s/ does not match; want %s (%s)", name, GoDir, sig, m[4]))
+			out = append(out, located(root, d, fn.Pos))
+			continue
+		}
 		d := global(diag.V902, m[4])
 		d.File = file
-		d.Range = diag.Range{Start: diag.Position{Line: ln, Col: col}, End: diag.Position{Line: ln, Col: col + 1}}
 		d.Snippet = sourceLine(filepath.Join(root, filepath.FromSlash(file)), ln)
+		if n := utf8.RuneCountInString(d.Snippet); d.Snippet != "" && col > n {
+			// A line directive names the start of a statement, so a column
+			// can run past the end of its line.
+			col = n
+		}
+		d.Range = diag.Range{Start: diag.Position{Line: ln, Col: col}, End: diag.Position{Line: ln, Col: col + 1}}
 		out = append(out, d)
 	}
+	out = dropConsequences(out)
 	if len(out) == 0 {
 		msg := strings.Join(raw, "; ")
 		if msg == "" {
@@ -186,4 +214,20 @@ func sourceLine(path string, n int) string {
 		return ""
 	}
 	return strings.TrimRight(lines[n-1], "\r")
+}
+
+// dropConsequences removes the errors that only repeat a V903: a call
+// to an extern fn whose Go function has the wrong signature fails too.
+func dropConsequences(ds []diag.Diagnostic) []diag.Diagnostic {
+	var bad []string
+	for _, d := range ds {
+		if d.Code == diag.V903 {
+			_, name, _ := strings.Cut(d.Message, "the Go function ")
+			name, _, _ = strings.Cut(name, " ")
+			bad = append(bad, "ext."+name)
+		}
+	}
+	return slices.DeleteFunc(ds, func(d diag.Diagnostic) bool {
+		return d.Code == diag.V902 && slices.ContainsFunc(bad, func(fn string) bool { return strings.Contains(d.Message, fn) })
+	})
 }

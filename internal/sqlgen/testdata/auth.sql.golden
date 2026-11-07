@@ -1,0 +1,46 @@
+SELECT u.id, u.created_at, u.updated_at, u.name, u.email, u.expires_at, u.password_hash, s.expires_at FROM user AS u JOIN vibe_session AS s ON s.user_id = u.id WHERE s.token_hash = ?1 AND s.expires_at > ?2;
+INSERT INTO vibe_session (token_hash, user_id, expires_at) VALUES (?1, ?2, ?3);
+UPDATE vibe_session SET expires_at = ?2 WHERE token_hash = ?1;
+DELETE FROM vibe_session WHERE token_hash = ?1;
+DELETE FROM vibe_session WHERE expires_at < ?1;
+
+-- table user (model User)
+CREATE TABLE user (id TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, expires_at TEXT, password_hash TEXT) STRICT;
+CREATE INDEX IF NOT EXISTS user_created_at_idx ON user (created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS user_email_key ON user (email);
+-- id cannot be added to a table with rows
+-- created_at cannot be added to a table with rows
+-- updated_at cannot be added to a table with rows
+-- name cannot be added to a table with rows
+-- email cannot be added to a table with rows
+ALTER TABLE user ADD COLUMN expires_at TEXT;
+ALTER TABLE user ADD COLUMN password_hash TEXT;
+SELECT id, created_at, updated_at, name, email, expires_at, password_hash FROM user ORDER BY created_at DESC, id DESC LIMIT ?1 OFFSET ?2;
+SELECT id, created_at, updated_at, name, email, expires_at, password_hash FROM user WHERE id = ?1;
+INSERT INTO user (id, created_at, updated_at, name, email, expires_at, password_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);
+UPDATE user SET updated_at = ?3, name = ?4, email = ?5, expires_at = ?6, password_hash = ?7 WHERE id = ?1;
+DELETE FROM user WHERE id = ?1;
+SELECT 1 FROM user WHERE email = ?1;
+
+-- table note (model Note)
+CREATE TABLE note (id TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, text TEXT NOT NULL, author_id TEXT NOT NULL REFERENCES user (id)) STRICT;
+CREATE INDEX IF NOT EXISTS note_created_at_idx ON note (created_at);
+CREATE INDEX IF NOT EXISTS note_author_id_idx ON note (author_id);
+-- id cannot be added to a table with rows
+-- created_at cannot be added to a table with rows
+-- updated_at cannot be added to a table with rows
+-- text cannot be added to a table with rows
+-- author_id cannot be added to a table with rows
+SELECT id, created_at, updated_at, text, author_id FROM note ORDER BY created_at DESC, id DESC LIMIT ?1 OFFSET ?2;
+SELECT id, created_at, updated_at, text, author_id FROM note WHERE id = ?1;
+INSERT INTO note (id, created_at, updated_at, text, author_id) VALUES (?1, ?2, ?3, ?4, ?5);
+UPDATE note SET updated_at = ?3, text = ?4, author_id = ?5 WHERE id = ?1;
+DELETE FROM note WHERE id = ?1;
+SELECT 1 FROM user WHERE id = ?1;
+
+-- table vibe_session
+CREATE TABLE vibe_session (token_hash TEXT NOT NULL PRIMARY KEY, user_id TEXT NOT NULL REFERENCES user (id) ON DELETE CASCADE, expires_at TEXT NOT NULL) STRICT;
+CREATE INDEX IF NOT EXISTS vibe_session_user_id_idx ON vibe_session (user_id);
+
+-- GET /notes
+SELECT id, created_at, updated_at, text, author_id FROM note WHERE author_id = ?3 ORDER BY created_at DESC, id DESC LIMIT ?1 OFFSET ?2;

@@ -31,7 +31,10 @@ type Model struct {
 	Name   string
 	Table  string
 	Fields []*Field // id, created_at and updated_at first
-	Pos    Pos
+	// Auth marks the account model, whose table also holds a password
+	// hash that no query or JSON shows.
+	Auth bool
+	Pos  Pos
 }
 
 // Field returns the field called name, or nil.

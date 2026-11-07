@@ -1,7 +1,8 @@
 package gogen
 
 import (
-	"errors"
+	"bytes"
+	"go/format"
 	"os"
 	"path/filepath"
 	"slices"
@@ -58,17 +59,33 @@ func TestGolden(t *testing.T) {
 	}
 }
 
-func TestUnsupported(t *testing.T) {
-	tests := []struct{ src, want string }{
-		{"app A {}\nauth User\nmodel User {\n  email: Email unique\n}\n", "main.vibe:3:1: vibe build does not support auth yet"},
-		{"app A {}\nextern fn pay(n: Int) -> Text\n", "main.vibe:2:1: vibe build does not support extern fn yet"},
-	}
-	for _, tt := range tests {
-		_, err := Generate(load(t, "main.vibe", []byte(tt.src)))
-		var u *Unsupported
-		if !errors.As(err, &u) || err.Error() != tt.want {
-			t.Errorf("Generate = %v, want %s", err, tt.want)
+// TestDirectivesSurviveGofmt checks that the line directives keep every
+// generated file gofmt-clean.
+func TestDirectivesSurviveGofmt(t *testing.T) {
+	paths, _ := filepath.Glob("../../testdata/gen/*.vibe")
+	for _, path := range paths {
+		src, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
 		}
+		files, err := Generate(load(t, "main.vibe", src))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for name, data := range files {
+			out, err := format.Source(data)
+			if err != nil || !bytes.Equal(out, data) {
+				t.Errorf("%s %s is not gofmt-clean: %v", path, name, err)
+			}
+		}
+	}
+}
+
+func TestLineDirectives(t *testing.T) {
+	src := "package main\n\nfunc f() {\n\tx := 1\n\t//vibe:at main.vibe:7:3\n\tif x > 0 {\n\t\t//vibe:at main.vibe:8:5\n\t\tx++\n\t\t//vibe:end\n\t}\n\t//vibe:end\n\ty := x\n\t_ = y\n}\n"
+	want := "package main\n\nfunc f() {\n\tx := 1\n\t/*line main.vibe:7:2*/ if x > 0 {\n\t\t/*line main.vibe:8:4*/ x++\n\t}\n\t/*line handlers.go:8:1*/ y := x\n\t_ = y\n}\n"
+	if got := string(lineDirectives("handlers.go", []byte(src))); got != want {
+		t.Errorf("lineDirectives =\n%s\nwant\n%s", got, want)
 	}
 }
 

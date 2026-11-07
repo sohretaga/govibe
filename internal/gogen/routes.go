@@ -2,6 +2,7 @@ package gogen
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/sohretaga/govibe/internal/ir"
@@ -17,8 +18,13 @@ func (g *gen) handlers() string {
 	taken := map[string]bool{}
 	var funcs strings.Builder
 	for i, r := range g.prog.Routes {
-		if r.Origin == ir.FromBuiltin {
+		switch r.Origin {
+		case ir.FromBuiltin:
 			names[i] = "vibe.Healthz"
+			continue
+		case ir.FromAuth:
+			// auth.go holds these handlers.
+			names[i] = authHandler(r)
 			continue
 		}
 		name := handlerName(r)
@@ -65,15 +71,20 @@ func (g *gen) handler(r *ir.Route, name string) string {
 	switch r.Origin {
 	case ir.FromCrud:
 		desc += ", crud " + r.Model.Name + " " + r.Op
-		if r.Owner != nil {
-			g.unsupported(r.Pos, "crud with owner")
-		}
 		g.crud(f, r)
 	default:
 		f.markUsed(r.Body, r.Value)
+		if r.Login {
+			// A route that uses me needs a session before any of its code
+			// runs.
+			f.line("me, err := loadMe(c)")
+			f.failOn()
+		}
 		f.params(r)
 		if r.Value != nil {
+			f.mark(r.Value.Position())
 			f.answer(r.Value)
+			f.unmark(r.Value.Position())
 		} else {
 			f.block(r.Body)
 			if !terminates(r.Body) {
@@ -150,6 +161,10 @@ func (f *body) pathParam(p *ir.Param) {
 
 func (f *body) inputs(params []*ir.Param) {
 	for _, p := range params {
+		if elem(p.Type).Kind == ir.Record {
+			f.record(p)
+			continue
+		}
 		x := f.read(p)
 		if f.used[p.Var] {
 			f.line("%s := %s", f.local(p.Var), x)
@@ -159,8 +174,60 @@ func (f *body) inputs(params []*ir.Param) {
 	}
 }
 
+// record writes the code that reads a param of model type: a JSON object
+// of the model's writable fields, checked like a create but not stored.
+func (f *body) record(p *ir.Param) {
+	if f.route.Method == "GET" || f.route.Method == "DELETE" {
+		f.g.unsupported(p.Pos, "a param of model type in a "+strings.ToLower(f.route.Method)+" route; use post or patch, whose params come from the JSON body")
+	}
+	m := elem(p.Type).Model
+	target := "_"
+	if f.used[p.Var] {
+		target = f.local(p.Var)
+	}
+	required := p.Type.Kind != ir.Optional
+	sub := f.temp()
+	v := f.temp()
+	if target != "_" {
+		f.line("var %s *model.%s", target, m.Name)
+	}
+	f.line("if %s := in.Object(%q, %t); %s != nil {", sub, p.Name, required, sub)
+	f.line(`%s.ReadOnly("id", "created_at", "updated_at")`, sub)
+	f.line("%s := &model.%s{}", v, m.Name)
+	for _, fl := range m.Fields {
+		if fl.Implicit {
+			continue
+		}
+		fp := &ir.Param{Name: fl.Name, Type: fl.Type, Default: fl.Default, Pos: p.Pos}
+		x := f.read(fp)
+		if fl.Type.Kind == ir.Slug {
+			// A slug the client does not give stays empty: nothing is
+			// stored, so none is generated.
+			x = "vibe.Deref(" + f.read(&ir.Param{Name: fl.Name, Type: ir.OptionalOf(fl.Type), Pos: p.Pos}) + ")"
+		}
+		f.line("%s.%s = %s", v, f.g.fields[fl], strings.Replace(x, "(in, ", "("+sub+", ", 1))
+	}
+	f.line("if err := check%s(c, %s, &%s.Errors); err != nil {\nreturn err\n}", m.Name, v, sub)
+	f.line("in.Merge(%q, %s)", p.Name, sub)
+	if target != "_" {
+		f.line("%s = %s", target, v)
+	}
+	f.line("}")
+}
+
 // read returns the call that reads param p from in.
 func (f *body) read(p *ir.Param) string {
+	if p.Type.Kind == ir.List || p.Type.Kind == ir.Optional && p.Type.Elem.Kind == ir.List {
+		l := elem(p.Type)
+		kind := inputKind(l.Elem)
+		if kind == "" || l.Elem.Kind == ir.Optional {
+			f.g.unsupported(p.Pos, "a param of type "+p.Type.String())
+		}
+		if p.Type.Kind == ir.Optional {
+			return fmt.Sprintf("vibe.OptList[%s](in, %q, %s)", goType(l.Elem), p.Name, kind)
+		}
+		return fmt.Sprintf("vibe.ReqList[%s](in, %q, %s)", goType(l.Elem), p.Name, kind)
+	}
 	kind := inputKind(p.Type)
 	if kind == "" {
 		f.g.unsupported(p.Pos, "a param of type "+p.Type.String())
@@ -189,14 +256,44 @@ func withType(k *ir.Const, t *ir.Type) *ir.Const {
 func (g *gen) crud(f *body, r *ir.Route) {
 	m := r.Model
 	n := m.Name
+	owner := r.Owner
+	needMe := owner != nil && (r.Private || r.Op == "create" || r.Op == "update" || r.Op == "delete")
+	readOnly := `"id", "created_at", "updated_at"`
+	if owner != nil {
+		// The owner is set from the session, never from input.
+		readOnly += ", " + strconv.Quote(owner.Name)
+	}
+	if needMe {
+		f.line("me, err := loadMe(c)")
+		f.failOn()
+	}
 	find := func() {
 		key := "c.PathText(" + fmt.Sprintf("%q", r.Key.Name) + ")"
 		f.line("r, err := find%sBy%s(c, %s)", n, g.fields[r.Key], key)
 		f.failOn()
+		if !needMe {
+			return
+		}
+		x := "r." + g.fields[owner]
+		notMine := x + " != me.ID"
+		if owner.Type.Kind == ir.Optional {
+			notMine = x + " == nil || *" + x + " != me.ID"
+		}
+		if r.Private {
+			// Others' private records do not exist for this user.
+			f.line("if %s {\nreturn vibe.Missing(%q)\n}", notMine, n)
+		} else {
+			f.line("if %s {\nreturn vibe.Fail(vibe.Forbidden, %q)\n}", notMine, "only the "+owner.Name+" of this "+n+" can change it")
+		}
 	}
 	switch r.Op {
 	case "list":
 		list := g.constSQL("sql"+n+"List", sqlgen.List(m), "lists "+n+" records, newest first.")
+		args := "limit, offset"
+		if r.Private {
+			list = g.constSQL("sql"+n+"ListOwned", sqlgen.ListOwned(m, owner), "lists the "+n+" records of one "+owner.Name+", newest first.")
+			args += ", me.ID"
+		}
 		f.line(`in := c.Query()
 limit := vibe.Def(in, "limit", vibe.AsInt, int64(50))
 offset := vibe.Def(in, "offset", vibe.AsInt, int64(0))
@@ -209,19 +306,26 @@ if offset < 0 {
 if err := in.Err(); err != nil {
 	return err
 }
-out, err := vibe.All(c, %s, scan%s, limit, offset)
+out, err := vibe.All(c, %s, scan%s, %s)
 if err != nil {
 	return err
 }
-return c.OK(out)`, list, n)
+return c.OK(out)`, list, n, args)
 	case "get":
 		find()
 		f.line("return c.OK(r)")
 	case "create":
 		f.line("in, err := c.Body()")
 		f.failOn()
-		f.line("in.ReadOnly(\"id\", \"created_at\", \"updated_at\")")
-		f.line("r := &%s{}", n)
+		f.line("in.ReadOnly(%s)", readOnly)
+		f.line("r := &model.%s{}", n)
+		if owner != nil {
+			me := "me.ID"
+			if owner.Type.Kind == ir.Optional {
+				me = "vibe.Ptr(me.ID)"
+			}
+			f.line("r.%s = %s", g.fields[owner], me)
+		}
 		for _, p := range r.Params {
 			field := m.Field(p.Name)
 			x := f.read(withParamType(p, field.Type))
@@ -241,7 +345,7 @@ return c.Created(r)`, n)
 		find()
 		f.line("in, err := c.Body()")
 		f.failOn()
-		f.line("in.ReadOnly(\"id\", \"created_at\", \"updated_at\")")
+		f.line("in.ReadOnly(%s)", readOnly)
 		for _, p := range r.Params[1:] {
 			field := m.Field(p.Name)
 			read := withParamType(p, field.Type)

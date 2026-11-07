@@ -161,9 +161,10 @@ func (c *checker) authRoutes() {
 		}
 	}
 	desc := "by auth " + m.Name + " at " + at.where()
+	session := &ir.Type{Kind: ir.Session, Model: m}
 	for _, r := range []*ir.Route{
-		{Method: "POST", Path: "/auth/register", Params: register, Result: ir.ModelOf(m), Status: "created", Op: "register"},
-		{Method: "POST", Path: "/auth/login", Params: []*ir.Param{body("email", ir.Basic(ir.Email)), body("password", ir.Basic(ir.Text))}, Result: ir.ModelOf(m), Status: "ok", Op: "login"},
+		{Method: "POST", Path: "/auth/register", Params: register, Result: session, Status: "created", Op: "register"},
+		{Method: "POST", Path: "/auth/login", Params: []*ir.Param{body("email", ir.Basic(ir.Email)), body("password", ir.Basic(ir.Text))}, Result: session, Status: "ok", Op: "login"},
 		{Method: "POST", Path: "/auth/logout", Result: ir.Basic(ir.Empty), Status: "empty", Op: "logout"},
 		{Method: "GET", Path: "/auth/me", Result: ir.ModelOf(m), Status: "ok", Login: true, Op: "me"},
 	} {

@@ -162,8 +162,8 @@ func TestReferenceApp(t *testing.T) {
 		routes = append(routes, r.Method+" "+r.Path+" -> "+r.Status+" "+r.Result.String()+login)
 	}
 	want := []string{
-		"POST /auth/register -> created User",
-		"POST /auth/login -> ok User",
+		"POST /auth/register -> created {user: User, token: Text}",
+		"POST /auth/login -> ok {user: User, token: Text}",
 		"POST /auth/logout -> empty no value",
 		"GET /auth/me -> ok User login",
 		"GET /books -> ok [Book]",
@@ -228,6 +228,8 @@ func TestConversions(t *testing.T) {
 		{"none fills an optional", "fn f() -> Text? {\n  return none\n}", true},
 		{"optional compared with none", "fn f(a: Money?) -> Bool {\n  return a != none and none != a\n}", true},
 		{"none never equals a plain value", "fn f(a: Int) -> Bool {\n  return a == none\n}", false},
+		{"optional list compared with none", "fn f(a: [Int]?) -> Int {\n  if a != none { return len(a) }\n  return 0\n}", true},
+		{"lists are not compared", "fn f(a: [Int], b: [Int]) -> Bool {\n  return a == b\n}", false},
 		{"time compares", "fn f(a: Time) -> Bool {\n  return a < now()\n}", true},
 		{"list of floats", "fn f() -> [Float] {\n  return [1, 2.5]\n}", true},
 		{"empty list", "fn f() -> [Text] {\n  return []\n}", true},

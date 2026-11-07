@@ -40,7 +40,11 @@ func assignable(from, to *ir.Type) bool {
 
 // comparable reports whether == and != apply to a and b.
 func comparable(a, b *ir.Type) bool {
-	if a.Kind == ir.JSON || b.Kind == ir.JSON || a.Kind == ir.Invalid || b.Kind == ir.Invalid {
+	switch {
+	case a.Kind == ir.JSON || b.Kind == ir.JSON || a.Kind == ir.Invalid || b.Kind == ir.Invalid:
+		return true
+	case a.Kind == ir.None && b.Kind == ir.Optional, b.Kind == ir.None && a.Kind == ir.Optional:
+		// Any optional, a record or a list too, is tested against none.
 		return true
 	}
 	for _, t := range []*ir.Type{a, b} {

@@ -24,11 +24,11 @@ func goType(t *ir.Type) string {
 	case ir.Money:
 		return "vibe.Money"
 	case ir.Record:
-		return "*" + t.Model.Name
+		return "*model." + t.Model.Name
 	case ir.List:
 		return "[]" + goType(t.Elem)
 	case ir.Query:
-		return "[]*" + t.Model.Name
+		return "[]*model." + t.Model.Name
 	case ir.Optional:
 		if t.Elem.Kind == ir.Record {
 			return goType(t.Elem)

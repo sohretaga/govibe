@@ -37,10 +37,30 @@ const maxRows = 1000
 // generated scanner expects.
 func Columns(m *ir.Model) []*ir.Field { return m.Fields }
 
-func columnList(m *ir.Model) string {
-	cols := make([]string, len(m.Fields))
-	for i, f := range m.Fields {
-		cols[i] = ident(f.Column)
+// PasswordColumn holds the bcrypt hash of an account's password in the
+// table of the auth model. It is the last column every statement of that
+// model reads and writes, and no GoVibe query or JSON shows it.
+const PasswordColumn = "password_hash"
+
+// columnNames returns the columns of m in table order.
+func columnNames(m *ir.Model) []string {
+	cols := make([]string, 0, len(m.Fields)+1)
+	for _, f := range m.Fields {
+		cols = append(cols, f.Column)
+	}
+	if m.Auth {
+		cols = append(cols, PasswordColumn)
+	}
+	return cols
+}
+
+// columnList returns the columns of m for SQL, each prefixed with
+// prefix, such as "u.".
+func columnList(m *ir.Model, prefix ...string) string {
+	p := strings.Join(prefix, "")
+	cols := columnNames(m)
+	for i, c := range cols {
+		cols[i] = p + ident(c)
 	}
 	return strings.Join(cols, ", ")
 }
@@ -119,6 +139,14 @@ func List(m *ir.Model) string {
 	return "SELECT " + columnList(m) + " FROM " + ident(m.Table) + " ORDER BY created_at DESC, id DESC LIMIT ?1 OFFSET ?2"
 }
 
+// ListOwned returns the statement of a private crud list: the records
+// whose owner field is ?3, newest first, with ?1 as the limit and ?2 as
+// the offset.
+func ListOwned(m *ir.Model, owner *ir.Field) string {
+	return "SELECT " + columnList(m) + " FROM " + ident(m.Table) + " WHERE " + ident(owner.Column) +
+		" = ?3 ORDER BY created_at DESC, id DESC LIMIT ?1 OFFSET ?2"
+}
+
 // Find returns the statement that loads the record of m whose field f is
 // ?1.
 func Find(m *ir.Model, f *ir.Field) string {
@@ -134,8 +162,8 @@ func Exists(m *ir.Model, f *ir.Field) string {
 // Insert returns the statement that stores a new record of m, with one
 // parameter per column in Columns order.
 func Insert(m *ir.Model) string {
-	params := make([]string, len(m.Fields))
-	for i := range m.Fields {
+	params := make([]string, len(columnNames(m)))
+	for i := range params {
 		params[i] = "?" + strconv.Itoa(i+1)
 	}
 	return "INSERT INTO " + ident(m.Table) + " (" + columnList(m) + ") VALUES (" + strings.Join(params, ", ") + ")"
@@ -146,11 +174,11 @@ func Insert(m *ir.Model) string {
 // never changes.
 func Update(m *ir.Model) string {
 	var sets []string
-	for i, f := range m.Fields {
-		if f.Implicit && (f.Name == "id" || f.Name == "created_at") {
+	for i, c := range columnNames(m) {
+		if c == "id" || c == "created_at" {
 			continue
 		}
-		sets = append(sets, ident(f.Column)+" = ?"+strconv.Itoa(i+1))
+		sets = append(sets, ident(c)+" = ?"+strconv.Itoa(i+1))
 	}
 	return "UPDATE " + ident(m.Table) + " SET " + strings.Join(sets, ", ") + " WHERE id = ?1"
 }

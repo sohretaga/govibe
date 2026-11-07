@@ -19,7 +19,7 @@ type Table struct {
 
 // Column is one column of a table.
 type Column struct {
-	Field   *ir.Field
+	Field   *ir.Field // nil for the password hash and session columns
 	Name    string
 	Type    string // INTEGER, REAL or TEXT
 	NotNull bool
@@ -28,11 +28,15 @@ type Column struct {
 	Add string
 }
 
-// Schema returns the tables of every model, in declaration order.
+// Schema returns the tables of every model, in declaration order, and
+// with auth the sessions table.
 func Schema(p *ir.Program) []Table {
-	out := make([]Table, 0, len(p.Models))
+	out := make([]Table, 0, len(p.Models)+1)
 	for _, m := range p.Models {
 		out = append(out, table(m))
+	}
+	if p.Auth != nil {
+		out = append(out, sessionTable(p.Auth))
 	}
 	return out
 }
@@ -49,6 +53,13 @@ func table(m *ir.Model) Table {
 		}
 		t.Columns = append(t.Columns, c)
 		t.Indexes = append(t.Indexes, indexes(m, f)...)
+	}
+	if m.Auth {
+		c := Column{Name: PasswordColumn, Type: "TEXT"}
+		def := ident(c.Name) + " TEXT"
+		c.Add = "ALTER TABLE " + ident(m.Table) + " ADD COLUMN " + def
+		defs = append(defs, def)
+		t.Columns = append(t.Columns, c)
 	}
 	t.Create = "CREATE TABLE " + ident(m.Table) + " (" + strings.Join(defs, ", ") + ") STRICT"
 	return t

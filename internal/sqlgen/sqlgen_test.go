@@ -45,9 +45,25 @@ func describe(e ir.Expr) string {
 var uses = [...]string{Value: "value", Limit: "limit", Offset: "offset"}
 
 func TestGolden(t *testing.T) {
-	prog := load(t, "testdata/queries.vibe")
+	for _, name := range []string{"queries", "auth"} {
+		t.Run(name, func(t *testing.T) {
+			golden.Assert(t, "testdata/"+name+".sql.golden", []byte(dump(t, "testdata/"+name+".vibe")))
+		})
+	}
+}
+
+// dump prints the schema and every statement of a program.
+func dump(t *testing.T, path string) string {
+	prog := load(t, path)
 	var b strings.Builder
+	if prog.Auth != nil {
+		fmt.Fprintf(&b, "%s;\n%s;\n%s;\n%s;\n%s;\n\n", SessionUser(prog.Auth), SessionInsert, SessionRenew, SessionDelete, SessionPurge)
+	}
 	for _, tb := range Schema(prog) {
+		if tb.Model == nil {
+			fmt.Fprintf(&b, "-- table %s\n%s;\n%s\n\n", tb.Name, tb.Create, strings.Join(tb.Indexes, ";\n")+";")
+			continue
+		}
 		fmt.Fprintf(&b, "-- table %s (model %s)\n%s;\n", tb.Name, tb.Model.Name, tb.Create)
 		for _, ix := range tb.Indexes {
 			fmt.Fprintf(&b, "%s;\n", ix)
@@ -72,6 +88,9 @@ func TestGolden(t *testing.T) {
 		b.WriteString("\n")
 	}
 	for _, r := range prog.Routes {
+		if r.Origin == ir.FromCrud && r.Private && r.Op == "list" {
+			fmt.Fprintf(&b, "-- %s %s\n%s;\n", r.Method, r.Path, ListOwned(r.Model, r.Owner))
+		}
 		if r.Origin != ir.FromRoute {
 			continue
 		}
@@ -91,7 +110,7 @@ func TestGolden(t *testing.T) {
 			return true
 		})
 	}
-	golden.Assert(t, "testdata/queries.sql.golden", []byte(b.String()))
+	return b.String()
 }
 
 func TestLiteral(t *testing.T) {

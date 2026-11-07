@@ -22,7 +22,7 @@
           "in": "body"
         }
       ],
-      "result": "User",
+      "result": "{user: User, token: Text}",
       "status": "created",
       "login": false,
       "origin": "auth register",
@@ -44,7 +44,7 @@
           "in": "body"
         }
       ],
-      "result": "User",
+      "result": "{user: User, token: Text}",
       "status": "ok",
       "login": false,
       "origin": "auth login",

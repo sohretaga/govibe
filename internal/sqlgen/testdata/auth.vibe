@@ -1,0 +1,18 @@
+app Notes {}
+
+auth User
+
+model User {
+  name: Text
+  email: Email unique
+  expires_at: Time?
+}
+
+model Note {
+  text: Text
+  author: Ref User
+}
+
+feature Notes {
+  crud Note at /notes owner author private
+}

@@ -389,11 +389,11 @@ func TestBuildWithErrors(t *testing.T) {
 	}
 }
 
-func TestBuildUnsupported(t *testing.T) {
-	dir := makeProject(t, map[string]string{"main.vibe": "app A {}\nauth User\n\nmodel User {\n  email: Email unique\n}\n"})
+func TestBuildMissingExtern(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "app A {}\n\nextern fn pay(n: Int) -> Text\n"})
 	var stdout, stderr bytes.Buffer
 	code := Build(context.Background(), dir, "", false, &stdout, &stderr)
-	if code != ExitFailure || !strings.Contains(stderr.String(), "main.vibe:4:1: vibe build does not support auth yet") {
+	if code != ExitFailure || !strings.Contains(stderr.String(), "main.vibe:3:1: error V903: extern fn pay: no Go function Pay in go/") {
 		t.Errorf("exit %d, stderr %q", code, stderr.String())
 	}
 }

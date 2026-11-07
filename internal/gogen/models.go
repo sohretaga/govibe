@@ -9,16 +9,43 @@ import (
 	"github.com/sohretaga/govibe/internal/sqlgen"
 )
 
-// models returns models.go: per model a struct and the functions that
-// scan, check, find, insert, update and delete its records.
+// structs returns model/model.go: one struct per model. The auth model
+// also holds the password hash, which JSON never shows.
+func (g *gen) structs() string {
+	var b strings.Builder
+	b.WriteString(modelHeader)
+	for _, m := range g.prog.Models {
+		n := m.Name
+		fmt.Fprintf(&b, "\n// %s is a record of model %s, declared at %s.\ntype %s struct {\n", n, n, where(m.Pos), n)
+		for _, f := range structOrder(m) {
+			fmt.Fprintf(&b, "\t%s %s `json:%q`\n", g.fields[f], strings.ReplaceAll(goType(f.Type), "model.", ""), f.Name)
+		}
+		if m.Auth {
+			b.WriteString("\t// PasswordHash is the bcrypt hash of the password, or nil for an\n\t// account made without one, which cannot log in.\n\tPasswordHash *string `json:\"-\"`\n")
+		}
+		b.WriteString("}\n")
+	}
+	return b.String()
+}
+
+// models returns models.go: per model the functions that scan, check,
+// find, insert, update and delete its records.
 func (g *gen) models() string {
 	var b strings.Builder
 	b.WriteString(header)
 	b.WriteString("// tables returns the schema the runtime syncs at startup.\nfunc tables() []vibe.Table {\n\treturn []vibe.Table{\n")
 	for _, t := range sqlgen.Schema(g.prog) {
-		fmt.Fprintf(&b, "\t\t{\n\t\t\tName: %q,\n\t\t\tModel: %q,\n\t\t\tCreate: %s,\n\t\t\tColumns: []vibe.Column{\n", t.Name, t.Model.Name, strconv.Quote(t.Create))
+		model := "login sessions"
+		if t.Model != nil {
+			model = t.Model.Name
+		}
+		fmt.Fprintf(&b, "\t\t{\n\t\t\tName: %q,\n\t\t\tModel: %q,\n\t\t\tCreate: %s,\n\t\t\tColumns: []vibe.Column{\n", t.Name, model, strconv.Quote(t.Create))
 		for _, c := range t.Columns {
-			fmt.Fprintf(&b, "\t\t\t\t{Name: %q, Field: %q, Type: %q, NotNull: %t, Add: %s},\n", c.Name, c.Field.Name, c.Type, c.NotNull, strconv.Quote(c.Add))
+			field := c.Name
+			if c.Field != nil {
+				field = c.Field.Name
+			}
+			fmt.Fprintf(&b, "\t\t\t\t{Name: %q, Field: %q, Type: %q, NotNull: %t, Add: %s},\n", c.Name, field, c.Type, c.NotNull, strconv.Quote(c.Add))
 		}
 		b.WriteString("\t\t\t},\n")
 		if len(t.Indexes) > 0 {
@@ -53,12 +80,6 @@ func structOrder(m *ir.Model) []*ir.Field {
 
 func (g *gen) model(b *strings.Builder, m *ir.Model) {
 	n := m.Name
-	fmt.Fprintf(b, "\n// %s is a record of model %s, declared at %s.\ntype %s struct {\n", n, n, where(m.Pos), n)
-	for _, f := range structOrder(m) {
-		fmt.Fprintf(b, "\t%s %s `json:%q`\n", g.fields[f], goType(f.Type), f.Name)
-	}
-	b.WriteString("}\n")
-
 	dests := make([]string, len(m.Fields))
 	args := make([]string, len(m.Fields))
 	for i, f := range sqlgen.Columns(m) {
@@ -71,10 +92,13 @@ func (g *gen) model(b *strings.Builder, m *ir.Model) {
 			dests[i], args[i] = "vibe.ScanOptTime(&"+x+")", "vibe.OptTimeArg("+x+")"
 		}
 	}
+	if m.Auth {
+		dests, args = append(dests, "&r.PasswordHash"), append(args, "r.PasswordHash")
+	}
 	fmt.Fprintf(b, `
 // scan%[1]s reads a %[1]s from a row whose columns are in table order.
-func scan%[1]s(row vibe.Scanner) (*%[1]s, error) {
-	r := &%[1]s{}
+func scan%[1]s(row vibe.Scanner) (*model.%[1]s, error) {
+	r := &model.%[1]s{}
 	if err := row.Scan(%[2]s); err != nil {
 		return nil, err
 	}
@@ -82,7 +106,7 @@ func scan%[1]s(row vibe.Scanner) (*%[1]s, error) {
 }
 
 // args%[1]s returns the columns of r in table order, as query parameters.
-func args%[1]s(r *%[1]s) []any {
+func args%[1]s(r *model.%[1]s) []any {
 	return []any{%[3]s}
 }
 `, n, strings.Join(dests, ", "), strings.Join(args, ", "))
@@ -121,7 +145,7 @@ func args%[1]s(r *%[1]s) []any {
 	fmt.Fprintf(b, `
 // insert%[1]s checks a new %[1]s, adding its problems to errs, and stores
 // it.
-func insert%[1]s(c *vibe.Ctx, r *%[1]s, errs *vibe.Errors) (*%[1]s, error) {
+func insert%[1]s(c *vibe.Ctx, r *model.%[1]s, errs *vibe.Errors) (*model.%[1]s, error) {
 	now := vibe.Now()
 	r.ID, r.CreatedAt, r.UpdatedAt = c.NewID(), now, now
 	if err := check%[1]s(c, r, errs); err != nil {
@@ -138,7 +162,7 @@ func insert%[1]s(c *vibe.Ctx, r *%[1]s, errs *vibe.Errors) (*%[1]s, error) {
 
 // update%[1]s checks a changed %[1]s, adding its problems to errs, and
 // stores it.
-func update%[1]s(c *vibe.Ctx, r *%[1]s, errs *vibe.Errors) (*%[1]s, error) {
+func update%[1]s(c *vibe.Ctx, r *model.%[1]s, errs *vibe.Errors) (*model.%[1]s, error) {
 	r.UpdatedAt = vibe.Now()
 	if err := check%[1]s(c, r, errs); err != nil {
 		return nil, err
@@ -153,7 +177,7 @@ func update%[1]s(c *vibe.Ctx, r *%[1]s, errs *vibe.Errors) (*%[1]s, error) {
 }
 
 // delete%[1]s removes a %[1]s.
-func delete%[1]s(c *vibe.Ctx, r *%[1]s) error {
+func delete%[1]s(c *vibe.Ctx, r *model.%[1]s) error {
 	return c.Exec(%[4]s, r.ID)
 }
 `, n, insert, update, del, slugs.String())
@@ -173,7 +197,7 @@ func (g *gen) findFunc(b *strings.Builder, m *ir.Model, f *ir.Field) {
 	}
 	fmt.Fprintf(b, `
 // find%[1]sBy%[2]s loads the %[1]s whose %[3]s is v, or answers not_found.
-func find%[1]sBy%[2]s(c *vibe.Ctx, v %[4]s) (*%[1]s, error) {
+func find%[1]sBy%[2]s(c *vibe.Ctx, v %[4]s) (*model.%[1]s, error) {
 %[5]s	return vibe.Find(c, %[6]s, scan%[1]s, %[1]q, %[7]s)
 }
 `, n, fn, f.Name, goType(elem(f.Type)), guard, query, arg)
@@ -182,7 +206,7 @@ func find%[1]sBy%[2]s(c *vibe.Ctx, v %[4]s) (*%[1]s, error) {
 // check writes the function that checks the field rules of a record and
 // that its Refs exist.
 func (g *gen) check(b *strings.Builder, m *ir.Model) {
-	fmt.Fprintf(b, "\n// check%[1]s adds every rule r breaks to errs: the field rules of %[1]s\n// and the records its Refs name.\nfunc check%[1]s(c *vibe.Ctx, r *%[1]s, errs *vibe.Errors) error {\n", m.Name)
+	fmt.Fprintf(b, "\n// check%[1]s adds every rule r breaks to errs: the field rules of %[1]s\n// and the records its Refs name.\nfunc check%[1]s(c *vibe.Ctx, r *model.%[1]s, errs *vibe.Errors) error {\n", m.Name)
 	for _, f := range m.Fields {
 		if f.Implicit {
 			continue

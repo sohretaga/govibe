@@ -160,11 +160,16 @@ func (c *checker) resolveAuth() {
 	}
 	c.auth = m
 	c.prog.Auth = m.ir
+	m.ir.Auth = true
 	email := m.ir.Field("email")
 	var fd *ast.Field
 	for _, x := range m.ast.Fields {
-		if x.Name.Name == "email" {
+		switch x.Name.Name {
+		case "email":
 			fd = x
+		case "password", "password_hash":
+			c.errorAt(m.file, diag.V209, x.Name, "a field of the auth model", quote(x.Name.Name),
+				"auth keeps the password itself, hashed, and register takes it as the param password")
 		}
 	}
 	name := m.ast.Name

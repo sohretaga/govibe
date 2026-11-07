@@ -236,7 +236,7 @@ func (e *env) stmt(s ast.Stmt) (ir.Stmt, bool) {
 		if e.kind != inTest {
 			e.errorf(diag.V405, s, "expect")
 		}
-		return &ir.Expect{Cond: e.cond(s.Cond, false), Pos: e.pos(s)}, false
+		return &ir.Expect{Cond: e.cond(s.Cond, false), Text: e.f.Text(s.Cond.Pos(), s.Cond.End()), Pos: e.pos(s)}, false
 	case *ast.ExprStmt:
 		return &ir.ExprStmt{X: e.expr(s.X, nil)}, false
 	}

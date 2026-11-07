@@ -234,9 +234,11 @@ type Fail struct {
 	Pos     Pos
 }
 
-// Expect checks a condition in a test.
+// Expect checks a condition in a test. Text is the condition as the
+// source writes it, which a failed expect prints.
 type Expect struct {
 	Cond Expr
+	Text string
 	Pos  Pos
 }
 

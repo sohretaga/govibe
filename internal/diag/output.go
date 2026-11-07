@@ -40,8 +40,11 @@ func WriteJSON(w io.Writer, v any) error {
 func WriteText(w io.Writer, ds []Diagnostic) error {
 	var b strings.Builder
 	for _, d := range ds {
-		fmt.Fprintf(&b, "%s:%d:%d: %s %s: %s\n", d.File, d.Range.Start.Line, d.Range.Start.Col, d.Severity, d.Code, d.Message)
-		if d.Range.Start.Line > 0 {
+		if d.File != "" {
+			fmt.Fprintf(&b, "%s:%d:%d: ", d.File, d.Range.Start.Line, d.Range.Start.Col)
+		}
+		fmt.Fprintf(&b, "%s %s: %s\n", d.Severity, d.Code, d.Message)
+		if d.Range.Start.Line > 0 && d.Snippet != "" {
 			gutter := fmt.Sprintf("%d", d.Range.Start.Line)
 			pad := strings.Repeat(" ", len(gutter))
 			fmt.Fprintf(&b, "  %s | %s\n", gutter, d.Snippet)

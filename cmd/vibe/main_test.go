@@ -17,7 +17,10 @@ func TestRun(t *testing.T) {
 	}{
 		{nil, 2, "Usage:"},
 		{[]string{"help"}, 0, "vibe check"},
-		{[]string{"build"}, 2, `unknown command "build"`},
+		{[]string{"deploy"}, 2, `unknown command "deploy"`},
+		{[]string{"help"}, 0, "vibe build"},
+		{[]string{"build", "x"}, 2, "unexpected argument"},
+		{[]string{"build", "-o"}, 2, "flag needs an argument"},
 		{[]string{"check", "--yaml"}, 2, "flag provided but not defined"},
 		{[]string{"check", "main.vibe"}, 2, "unexpected argument"},
 		{[]string{"fmt", "x"}, 2, "unexpected argument"},

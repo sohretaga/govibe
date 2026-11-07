@@ -1,0 +1,56 @@
+app Shop {
+  db "sqlite://shop.db"
+}
+
+model User {
+  name: Text min 2 max 120
+  email: Email unique
+  nickname: Text?
+}
+
+model Book {
+  title: Text min 2 max 200
+  slug: Slug(title)
+  seller: Ref User
+  editor: Ref User?
+  pages: Int min 1
+  price: Money min 0
+  rating: Float = 2.5
+  published: Bool = false
+  note: Text = "it's new"
+  released_at: Time?
+}
+
+model Order {
+  book: Ref Book
+  quantity: Int = 1
+  group: Text?
+}
+
+feature Shop {
+  crud Book at /books/{slug}
+
+  get /search (q: Text?, limit = 20) = Book.where(title contains q, published).newest().limit(limit)
+
+  get /cheap (max_price: Money?, min_pages: Int?) = Book.where(price <= max_price, pages >= min_pages).order(price).order(-pages)
+
+  get /either (q: Text?, all = false) = Book.where(title contains q or all, not (note contains q))
+
+  get /none = Book.where(editor == none, released_at != none).count()
+
+  get /nick (n: Text) = User.where(nickname == n or nickname != "x").first()
+
+  get /page (n = 2) = Book.all().offset(n * 10).limit(10)
+
+  get /counted (n = 5) = Book.all().limit(n).count()
+
+  get /first_page (n = 5) = Book.where(published).order(title).offset(n).first()
+
+  get /flag (on = true) = Book.where(on and published == on)
+
+  get /orders (q: Text?) = Order.where(group == q, quantity > 1)
+
+  get /order = Order.all().order(-group)
+
+  get /one = Book.find(slug: "dune")
+}

@@ -1,0 +1,104 @@
+app Kitchen {
+  db "sqlite://kitchen.db"
+}
+
+model Item {
+  name: Text unique
+  note: Text?
+  qty: Int = 1
+  weight: Float?
+  price: Money
+  discount: Money?
+  sold: Bool = false
+  sold_at: Time?
+  code: Text? max 10
+  parent: Ref Item?
+}
+
+fn half(x: Float) -> Float {
+  return x / 2
+}
+
+fn maybe(x: Float?) -> Float {
+  if x != none {
+    return x
+  }
+  return 0
+}
+
+fn average(xs: [Float]) -> Float {
+  if len(xs) == 0 {
+    return 0
+  }
+  return 1
+}
+
+fn label(name: Text, qty: Int, price: Money, sold: Bool) -> Text {
+  return "{name} x{qty} at {price}, sold: {sold}"
+}
+
+feature Kitchen {
+  crud Item at /items/{name}
+
+  get /math (a = 7, b = 2, w = 1.5) = [a / b, a % b, -a, a * b - 1]
+
+  get /floats (a = 7, w = 1.5) = [a * w, half(a), w / a, maybe(none)]
+
+  get /widen (n: Int?) = maybe(n)
+
+  get /lists = average([1, 2, 3])
+
+  get /money (p: Money, q = 2) = [p + p, p - p, p * q, q * p]
+
+  get /compare (a = 1, w = 2.5, t: Text, u: Text?) = [a < w, w >= a, t == "x", u == none, u != t, t != u, u == u, not (t contains "y"), t < "m"]
+
+  get /times (moment: Time, other: Time?) = [moment < now(), moment >= now(), moment == now(), other == none, other != moment]
+
+  get /money_compare (p: Money, d: Money?) = [p > 10, p == d, d != none, p <= 9.99]
+
+  get /words (t: Text) = [t.upper(), t.trim(), str(t.starts_with("a")), str(t.ends_with("z")), str(len(t)), "{t}!"]
+
+  get /logic (a: Bool, b: Bool) = [a and b, a or b, not a, a and not b or b]
+
+  get /queried (n: Text?, max_qty: Int?, since: Time?) = Item.where(note == n, qty <= max_qty, created_at > since, not sold or price > 5, weight != none).order(name).limit(10)
+
+  get /firsts (n: Text) = Item.where(name == n or name contains n, code != n).first()
+
+  get /counts = Item.where(sold).count() + Item.all().offset(1).count()
+
+  post /items/{name}/sell (moment: Time?) {
+    let it = Item.find(name: name)
+    if it.sold {
+      fail conflict "already sold"
+    } else if it.qty < 1 and Item.where(parent == it.id).count() == 0 {
+      fail "nothing to sell"
+    }
+    let when = moment
+    if when != none {
+      return it.update(sold: true, sold_at: when, qty: it.qty - 1)
+    }
+    return it.update(sold: true, sold_at: now(), discount: none)
+  }
+
+  post /items/{name}/copy (name2: Text) {
+    let it = Item.find(name: name)
+    let copy = Item.add(name: name2, price: it.price, parent: it.id, note: it.note, weight: 2)
+    if copy.weight != none {
+      return copy
+    }
+    return copy
+  }
+
+  get /label (name: Text) {
+    let it = Item.find(name: name)
+    let d = it.discount
+    if d != none and len(name) > 0 {
+      return label(it.name, it.qty, it.price - d, it.sold)
+    }
+    return label(it.name, it.qty, it.price, it.sold)
+  }
+
+  delete /items/{name}/purge {
+    Item.find(name: name).delete()
+  }
+}

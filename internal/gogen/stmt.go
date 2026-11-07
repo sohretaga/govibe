@@ -1,0 +1,110 @@
+package gogen
+
+import (
+	"fmt"
+
+	"github.com/sohretaga/govibe/internal/ir"
+)
+
+// statusConst returns the vibe constant of a status name.
+func statusConst(name string) string {
+	return "vibe." + pascal(name)
+}
+
+// block writes the statements of b up to the first that ends the path:
+// Go rejects code after it.
+func (f *body) block(b *ir.Block) {
+	for _, s := range b.Stmts {
+		f.stmt(s)
+		if stmtTerminates(s) {
+			return
+		}
+	}
+}
+
+func (f *body) stmt(s ir.Stmt) {
+	switch s := s.(type) {
+	case *ir.Block:
+		f.line("{")
+		f.block(s)
+		f.line("}")
+	case *ir.Let:
+		x := f.value(s.Value, s.Var.Type)
+		if !f.used[s.Var] {
+			if x != "" {
+				f.line("_ = %s", x)
+			}
+			return
+		}
+		f.line("%s := %s", f.local(s.Var), x)
+	case *ir.If:
+		f.ifStmt(s)
+	case *ir.Return:
+		f.ret(s)
+	case *ir.Fail:
+		f.line("return vibe.Fail(%s, %s)", statusConst(s.Status), f.value(s.Message, ir.Basic(ir.Text)))
+	case *ir.ExprStmt:
+		if x := f.expr(s.X); x != "" {
+			f.line("_ = %s", x)
+		}
+	case *ir.Expect:
+		panic(&Unsupported{Pos: s.Pos, What: "expect outside tests"})
+	default:
+		panic(fmt.Sprintf("gogen: statement %T", s))
+	}
+}
+
+func (f *body) ifStmt(s *ir.If) {
+	f.ifChain(s, f.expr(s.Cond), "if")
+}
+
+// ifChain writes an if whose condition is already generated; kw is "if"
+// or "} else if".
+func (f *body) ifChain(s *ir.If, cond, kw string) {
+	f.line("%s %s {", kw, cond)
+	f.block(s.Then)
+	switch els := s.Else.(type) {
+	case *ir.Block:
+		f.line("} else {")
+		f.block(els)
+		f.line("}")
+	case *ir.If:
+		stmts, c := f.capture(func() string { return f.expr(els.Cond) })
+		if stmts == "" {
+			f.ifChain(els, c, "} else if")
+			return
+		}
+		// The condition needs statements first, so the else holds them
+		// and a new if.
+		f.line("} else {")
+		f.w.WriteString(stmts)
+		f.ifChain(els, c, "if")
+		f.line("}")
+	default:
+		f.line("}")
+	}
+}
+
+// ret writes a return: a fn returns its value; a route answers with it.
+func (f *body) ret(s *ir.Return) {
+	if f.fn != nil {
+		f.line("return %s", f.value(s.Value, f.fn.Result))
+		return
+	}
+	f.answer(s.Value)
+}
+
+// answer writes the response of a route: ok with the value, or empty.
+func (f *body) answer(v ir.Expr) {
+	result := f.route.Result
+	if v == nil || result.Kind == ir.Empty {
+		if v != nil {
+			if x := f.expr(v); x != "" {
+				f.line("_ = %s", x)
+			}
+		}
+		f.line("return c.Empty()")
+		return
+	}
+	f.line("return c.OK(%s)", f.value(v, result))
+}

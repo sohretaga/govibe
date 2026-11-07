@@ -20,9 +20,10 @@ type Program struct {
 
 // App holds the settings of the app block.
 type App struct {
-	Name string
-	DB   string // database URL, or "" for the default
-	Pos  Pos
+	Name  string
+	Snake string // Name in snake_case: the binary and default database name
+	DB    string // database URL, or "" for the default
+	Pos   Pos
 }
 
 // Model is a model and the table that stores it.

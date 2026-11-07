@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -96,7 +98,8 @@ func TestCheckGolden(t *testing.T) {
 }
 
 // TestCodesHaveCases checks that every diagnostic code that the front
-// end reports has a check case that triggers it.
+// end reports has a check case that triggers it. V9xx codes come from
+// vibe build, which has its own tests.
 func TestCodesHaveCases(t *testing.T) {
 	seen := map[diag.Code]bool{}
 	for name := range checkCases(t) {
@@ -113,7 +116,7 @@ func TestCodesHaveCases(t *testing.T) {
 		}
 	}
 	for _, info := range diag.All() {
-		if !seen[info.Code] {
+		if !seen[info.Code] && !strings.HasPrefix(string(info.Code), "V9") {
 			t.Errorf("%s (%s) has no case in testdata/check", info.Code, info.Title)
 		}
 	}
@@ -367,5 +370,56 @@ func TestCheckSpeed(t *testing.T) {
 	t.Logf("%d lines in %d files checked in %v", lines, len(files), elapsed)
 	if elapsed > 100*time.Millisecond {
 		t.Errorf("vibe check took %v for %d lines, want under 100ms", elapsed, lines)
+	}
+}
+
+func TestBuildWithErrors(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "app A {}\n\nmodel Book {\n  title: Txt\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Build(context.Background(), dir, "", true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil || code != ExitFailure || r.OK || len(r.Diagnostics) == 0 || r.Output != "" {
+		t.Fatalf("exit %d, result %+v, err %v", code, r, err)
+	}
+	if r.Diagnostics[0].Code != diag.V101 {
+		t.Errorf("first diagnostic = %+v, want V101", r.Diagnostics[0])
+	}
+	if _, err := os.Stat(filepath.Join(dir, ".vibe")); err == nil {
+		t.Error("a project with errors must not get a build directory")
+	}
+}
+
+func TestBuildUnsupported(t *testing.T) {
+	dir := makeProject(t, map[string]string{"main.vibe": "app A {}\nauth User\n\nmodel User {\n  email: Email unique\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Build(context.Background(), dir, "", false, &stdout, &stderr)
+	if code != ExitFailure || !strings.Contains(stderr.String(), "main.vibe:4:1: vibe build does not support auth yet") {
+		t.Errorf("exit %d, stderr %q", code, stderr.String())
+	}
+}
+
+func TestBuild(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds a binary; skipped with -short")
+	}
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("no go command on the PATH")
+	}
+	dir := makeProject(t, map[string]string{"main.vibe": "app BookShop {}\n\nmodel Book {\n  title: Text\n}\n\nfeature Books {\n  crud Book at /books\n}\n"})
+	var stdout, stderr bytes.Buffer
+	code := Build(context.Background(), dir, "", true, &stdout, &stderr)
+	var r result
+	if err := json.Unmarshal(stdout.Bytes(), &r); err != nil || code != ExitOK || !r.OK {
+		t.Fatalf("exit %d, result %+v, err %v, stderr %s", code, r, err, stderr.String())
+	}
+	name := "book_shop"
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	if want := "." + string(filepath.Separator) + name; r.Output != want {
+		t.Errorf("output = %q, want %q", r.Output, want)
+	}
+	if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
+		t.Errorf("no binary: %v", err)
 	}
 }

@@ -1,0 +1,60 @@
+app Blog {}
+
+model Post {
+  title: Text min 3 max 200
+  slug: Slug(title)
+  body: Text
+  views: Int = 0
+  rating: Float?
+  price: Money?
+  published_at: Time?
+}
+
+fn excerpt(text: Text, n = 20) -> Text {
+  if len(text) <= n {
+    return text
+  }
+  return "{text}..."
+}
+
+fn score(views: Int, rating: Float) -> Float {
+  return views * rating / 2
+}
+
+feature Blog {
+  crud Post at /posts/{slug} only list, get, create, update
+
+  get /posts/{slug}/summary = excerpt(Post.find(slug: slug).body)
+
+  get /stats (min_views = 0) = Post.where(views >= min_views).count()
+
+  post /posts/{slug}/view {
+    let it = Post.find(slug: slug)
+    if it.views > 1000 and Post.where(views > it.views).count() == 0 {
+      fail conflict "the most viewed post is read-only"
+    }
+    let rating = it.rating
+    if rating != none {
+      if rating > 4.5 {
+        return it.update(views: it.views + 1, rating: rating)
+      }
+    } else if Post.all().count() > 10 {
+      return it.update(views: it.views + 2)
+    }
+    return it.update(views: it.views + 1)
+  }
+
+  delete /posts/{slug} {
+    let it = Post.find(slug: slug)
+    it.delete()
+  }
+
+  post /drafts (title: Text, body: Text, price: Money?) {
+    let p = Post.add(title: title, body: body, price: price)
+    return p
+  }
+
+  get /latest = Post.all().newest().first()
+
+  get /words (text: Text) = ["{len(text)} chars", str(score(3, 1.5)), text.lower().trim(), str(now() > now())]
+}

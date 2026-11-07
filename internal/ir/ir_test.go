@@ -58,3 +58,36 @@ func TestConstString(t *testing.T) {
 		}
 	}
 }
+
+func TestInspect(t *testing.T) {
+	v := &Var{Name: "x", Type: Basic(Int)}
+	ref := &VarRef{Var: v}
+	one := &Const{Value: int64(1)}
+	sum := &Binary{Op: "+", X: ref, Y: one}
+	q := &QueryExpr{Where: []Expr{sum}, Limit: ref}
+	body := &Block{Stmts: []Stmt{
+		&Let{Var: v, Value: q},
+		&If{Cond: ref, Then: &Block{Stmts: []Stmt{&Return{Value: one}}}, Else: &Block{Stmts: []Stmt{&Fail{Message: one}}}},
+		&ExprStmt{X: &Call{Args: []Expr{ref}}},
+	}}
+	count := map[string]int{}
+	InspectBlock(body, func(e Expr) bool {
+		switch e.(type) {
+		case *VarRef:
+			count["ref"]++
+		case *Const:
+			count["const"]++
+		case *QueryExpr:
+			count["query"]++
+		}
+		return true
+	})
+	if count["ref"] != 4 || count["const"] != 3 || count["query"] != 1 {
+		t.Errorf("visited %v, want 4 refs, 3 consts and 1 query", count)
+	}
+	n := 0
+	Inspect(q, func(Expr) bool { n++; return false })
+	if n != 1 {
+		t.Errorf("Inspect visited %d expressions after f returned false, want 1", n)
+	}
+}

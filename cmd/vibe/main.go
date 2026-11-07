@@ -17,6 +17,7 @@ Usage:
 
 	vibe check [--json]          parse and type-check the project and report diagnostics
 	vibe routes [--json]         list every route, including those crud and auth generate
+	vibe build [-o file] [--json] check, generate Go and build one binary
 	vibe fmt [--check] [--json]  rewrite files in canonical format
 	vibe explain <code> [--json] explain a diagnostic code, such as V201
 
@@ -57,6 +58,12 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 			return cli.ExitUsage
 		}
 		return cli.Routes(ctx, ".", *jsonOut, stdout, stderr)
+	case "build":
+		output := fs.String("o", "", "the binary to write (default: the app name in snake_case)")
+		if !parse(fs, args) {
+			return cli.ExitUsage
+		}
+		return cli.Build(ctx, ".", *output, *jsonOut, stdout, stderr)
 	case "explain":
 		if err := fs.Parse(args); err != nil {
 			return cli.ExitUsage
